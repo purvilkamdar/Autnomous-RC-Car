@@ -31,11 +31,7 @@ def MIN(x, y):
 
 
 class Signal(object):
-<<<<<<< HEAD
-    def __init__(self, name, bit_start, bit_size, endian_and_sign, scale, offset, min_val, max_val, recipients, mux):
-=======
     def __init__(self, name, bit_start, bit_size, endian_and_sign, scale, offset, min_val, max_val, recipients, mux, signal_min, signal_max):
->>>>>>> upstream/master
         self.has_field_type = False
         self.name = name
         self.bit_start = int(bit_start)
@@ -50,11 +46,8 @@ class Signal(object):
         self.min_val_str = min_val
         self.max_val = float(max_val)
         self.max_val_str = max_val
-<<<<<<< HEAD
-=======
         self.signal_min = signal_min
         self.signal_max = signal_max
->>>>>>> upstream/master
 
         self.recipients = recipients
         self.enum_info = {}
@@ -632,13 +625,9 @@ def main(argv):
     dbcfile = '243.dbc'  # Default value unless overriden
     self_node = 'DRIVER'  # Default value unless overriden
     gen_all = False
-<<<<<<< HEAD
-
-=======
     muxed_signal = False
     mux_bit_width = 0
     msg_ids_used = []
->>>>>>> upstream/master
     try:
         opts, args = getopt.getopt(argv, "i:s:a", ["ifile=", "self=", "all"])
     except getopt.GetoptError:
@@ -659,10 +648,7 @@ def main(argv):
     dbc = DBC(dbcfile, self_node, gen_all)
     f = open(dbcfile, "r")
     last_mid = -1
-<<<<<<< HEAD
-=======
     validFile = True
->>>>>>> upstream/master
     while 1:
         line = f.readline()
         if not line:
@@ -677,26 +663,17 @@ def main(argv):
                 print('#error "Self node: ' + self_node + ' not found in _BU nodes in the DBC file"')
                 print('/////////////////////////////// ERROR /////////////////////////////////////')
                 print('')
-<<<<<<< HEAD
-=======
                 raise ValueError('#error "Self node: ' + self_node + ' not found in _BU nodes in the DBC file"')
->>>>>>> upstream/master
 
         # Start of a message
         # BO_ 100 DRIVER_HEARTBEAT: 1 DRIVER
         if line.startswith("BO_ "):
-<<<<<<< HEAD
-=======
             muxed_signal = False
             mux_bit_width = 0
->>>>>>> upstream/master
             tokens = line.split(' ')
             msg_id = tokens[1]
             msg_name = tokens[2].strip(":")
             dbc.messages[msg_id] = Message(msg_id, msg_name, tokens[3], tokens[4].strip("\n"))
-<<<<<<< HEAD
-            last_mid = msg_id
-=======
             msg_length = tokens[3]
             last_mid = msg_id
             fixed_mux_signal = False
@@ -726,7 +703,6 @@ def main(argv):
                 print('/////////////////////////////// ERROR /////////////////////////////////////')
                 print('')
                 raise ValueError('#error msg id '+ msg_id + ' has an incorrect number of bytes. It must be between 1 and 8 bytes.')
->>>>>>> upstream/master
 
         # Signals: SG_ IO_DEBUG_test_signed : 16|8@1+ (1,-128) [0|0] "" DBG
         if line.startswith(" SG_ "):
@@ -743,10 +719,6 @@ def main(argv):
             s = re.split('[|@]', t[3])
             bit_start = s[0]
             bit_size = s[1]
-<<<<<<< HEAD
-            endian_and_sign = s[2]
-
-=======
 
             if mux == 'M':
                 muxed_signal = True
@@ -822,7 +794,6 @@ def main(argv):
                 raise ValueError('#error ' + t[1] + ' too large. Message needs ' + str(int(bit_start) + int(bit_size)) + ' bits.')
 
             endian_and_sign = s[2]
->>>>>>> upstream/master
             # Split (0.1,1) to two tokens by removing the ( and the )
             s = t[4][1:-1].split(',')
             scale = s[0]
@@ -833,12 +804,6 @@ def main(argv):
             min_val = s[0]
             max_val = s[1]
 
-<<<<<<< HEAD
-            recipients = t[7].strip('\n').split(',')
-
-            # Add the signal the last message object
-            sig = Signal(t[1], bit_start, bit_size, endian_and_sign, scale, offset, min_val, max_val, recipients, mux)
-=======
             signal_min = 0
             signal_max = (float(scale) * pow(2,int(bit_size)))
             if '-' in t[3]:
@@ -869,7 +834,6 @@ def main(argv):
 
             # Add the signal the last message object
             sig = Signal(t[1], bit_start, bit_size, endian_and_sign, scale, offset, min_val, max_val, recipients, mux, signal_min, signal_max)
->>>>>>> upstream/master
             dbc.messages[last_mid].add_signal(sig)
 
         # Parse the "FieldType" which is the trigger to use enumeration type for certain signals
@@ -899,13 +863,10 @@ def main(argv):
                 if enum_name in dbc.messages[sig_mid].signals:
                     if dbc.messages[sig_mid].signals[enum_name].has_field_type:
                         dbc.messages[sig_mid].signals[enum_name].enum_info = pairs
-<<<<<<< HEAD
-=======
     
     # If there were errors in parsing the DBC file then do not continue with generation.
     if not validFile:
         sys.exit(-1)
->>>>>>> upstream/master
 
     print(dbc.gen_file_header())
     print("\n")
