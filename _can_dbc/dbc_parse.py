@@ -697,7 +697,7 @@ def main(argv):
                 print('')
                 raise ValueError('#error msg id '+ msg_id + ' has already been used')
 
-            if int(msg_length) > 8 or int(msg_length < 1):
+            if int(msg_length) > 8 or int(msg_length) < 1:
                 print('/////////////////////////////// ERROR /////////////////////////////////////')
                 print('#error '+ msg_id + ' has an incorrect number of bytes. It must be between 1 and 8 bytes.')
                 print('/////////////////////////////// ERROR /////////////////////////////////////')
