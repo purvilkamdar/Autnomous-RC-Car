@@ -39,6 +39,8 @@
 #include "lpc_sys.h"
 #include "can.h"
 
+#define BUCKETS 20
+
 /* GLOBALS */
 int start = 0;
 int stop = 0;
@@ -51,9 +53,69 @@ bool left = 0,middle = 0,right = 0;
 GPIO sensor_trigger_left(P2_3);
 GPIO sensor_trigger_middle(P2_4);
 GPIO sensor_trigger_right(P2_5);
-static SemaphoreHandle_t trigger_left = 0; //semaphore variable
-static SemaphoreHandle_t trigger_middle = 0; //semaphore variable
-static SemaphoreHandle_t trigger_right = 0; //semaphore variable
+
+static SemaphoreHandle_t Send_CAN_Msg = 0; //semaphore variable
+
+typedef struct ModeFilter
+{
+int sum[BUCKETS];
+int count[BUCKETS];
+int MAX;
+int INDEX;
+int filtered_val;
+}ModeFilter;
+
+ModeFilter left_filter;
+ModeFilter middle_filter;
+ModeFilter right_filter;
+
+int HashIt(int Val)
+{
+	return (Val / 12);
+}
+
+void Reset_filters()
+{
+for(int i=0;i<BUCKETS;i++)
+{
+left_filter.sum[i] = 0;
+middle_filter.sum[i] = 0;
+right_filter.sum[i] = 0;
+
+left_filter.count[i] = 0;
+middle_filter.count[i] = 0;
+right_filter.count[i] = 0;
+
+left_filter.MAX = 0;
+middle_filter.MAX = 0;
+right_filter.MAX = 0;
+}
+}
+
+void ApplyFilter()
+{
+
+	/*for(int i=0;i<BUCKETS;i++)
+	{
+	if(left_filter.count[i] > left_filter.count_max)
+		{left_filter.count_max = left_filter.count[i];
+		left_filter.max_index = i;}
+
+	if(middle_filter.count[i] > middle_filter.count_max)
+		{middle_filter.count_max = middle_filter.count[i];
+		middle_filter.max_index = i;}
+
+	if(right_filter.count[i] > right_filter.count_max)
+		{right_filter.count_max = right_filter.count[i];
+		right_filter.max_index = i;}
+	}*/
+
+
+	left_filter.filtered_val   =  left_filter.sum[left_filter.INDEX]/left_filter.count[left_filter.INDEX];
+	middle_filter.filtered_val =  middle_filter.sum[middle_filter.INDEX]/middle_filter.count[middle_filter.INDEX];
+	right_filter.filtered_val  =  right_filter.sum[right_filter.INDEX]/right_filter.count[right_filter.INDEX];
+
+}
 
 void sensor_rise_left(void)
 	{
@@ -66,7 +128,13 @@ void sensor_fall_left(void)
 	//distance = (stop - start)/58;
 	left_distance = (stop - start)/147;
 	distance = left_distance;
-	xSemaphoreGiveFromISR(trigger_middle, NULL);
+	int index = HashIt(left_distance);
+    left_filter.sum[index] += left_distance;
+    left_filter.count[index] ++;
+    if(left_filter.count[index] > left_filter.MAX)
+    	{left_filter.MAX = left_filter.count[index];
+    	left_filter.INDEX = index;}
+
 	middle = 1;
 	}
 
@@ -81,7 +149,12 @@ void sensor_fall_middle(void)
 	//distance = (stop - start)/58;
 	middle_distance = (stop - start)/147;
 	distance = middle_distance;
-	xSemaphoreGiveFromISR(trigger_right, NULL);
+	int index = HashIt(left_distance);
+    middle_filter.sum[index] += left_distance;
+    middle_filter.count[index] ++;
+    if(middle_filter.count[index] > middle_filter.MAX)
+    	{middle_filter.MAX = middle_filter.count[index];
+    	 middle_filter.INDEX = index;}
 	right = 1;
 	}
 
@@ -96,7 +169,12 @@ void sensor_fall_right(void)
 	//distance = (stop - start)/58;      // In cms
 	right_distance = (stop - start)/147; //In inches
 	distance = right_distance;
-	xSemaphoreGiveFromISR(trigger_left, NULL);
+	int index = HashIt(left_distance);
+    right_filter.sum[index] += left_distance;
+    right_filter.count[index] ++;
+    if(right_filter.count[index] > right_filter.MAX)
+    	{right_filter.MAX = right_filter.count[index];
+    	 right_filter.INDEX = index;}
 	left = 1;
 	}
 
@@ -115,9 +193,7 @@ const uint32_t PERIOD_DISPATCHER_TASK_STACK_SIZE_BYTES = (512 * 3);
 bool period_init(void)
 {
 
-	      vSemaphoreCreateBinary(trigger_left);
-	      vSemaphoreCreateBinary(trigger_middle);
-	      vSemaphoreCreateBinary(trigger_right);
+	      vSemaphoreCreateBinary(Send_CAN_Msg);
 
 	      sensor_trigger_left.setAsOutput();
 	      sensor_trigger_left.setLow();
@@ -159,42 +235,19 @@ bool period_reg_tlm(void)
 
 void period_1Hz(uint32_t count)
 {
-    //if(xSemaphoreTake(trigger_left, 0))
-	if(left)
-    {
-	left = 0;
-	LE.toggle(1);
-	sensor_trigger_left.setHigh();
-	delay_us(25);
-	sensor_trigger_left.setLow();
-    }
 
-	//else if(xSemaphoreTake(trigger_middle, 0))
-	else if(middle)
-    {
-	middle = 0;
-	LE.toggle(2);
-	sensor_trigger_middle.setHigh();
-	delay_us(25);
-	sensor_trigger_middle.setLow();
-    }
-    //else if(xSemaphoreTake(trigger_right, 0))
-	else if(right)
-    {
-	right = 0;
-    LE.toggle(3);
-    sensor_trigger_right.setHigh();
-	delay_us(25);
-	sensor_trigger_right.setLow();
-    }
 
 	LD.setNumber(distance);
 }
 
 void period_10Hz(uint32_t count)
 {
-    //LE.toggle(2);
-	//LD.setNumber(left_distance);
+	if(xSemaphoreTake(Send_CAN_Msg, 0))
+	{
+	ApplyFilter();
+
+	Reset_filters();
+	}
 }
 
 void period_100Hz(uint32_t count)
@@ -210,6 +263,38 @@ void period_1000Hz(uint32_t count)
 {
 
 
+		if(left)
+	    {
+		left = 0;
+		LE.toggle(1);
+		sensor_trigger_left.setHigh();
+		delay_us(25);
+		sensor_trigger_left.setLow();
+	    }
 
+		//else if(xSemaphoreTake(trigger_middle, 0))
+		else if(middle)
+	    {
+		middle = 0;
+		LE.toggle(2);
+		sensor_trigger_middle.setHigh();
+		delay_us(25);
+		sensor_trigger_middle.setLow();
+	    }
+	    //else if(xSemaphoreTake(trigger_right, 0))
+		else if(right)
+	    {
+		right = 0;
+	    LE.toggle(3);
+	    sensor_trigger_right.setHigh();
+		delay_us(25);
+		sensor_trigger_right.setLow();
+	    }
+
+		if(count == 100)
+			{
+			xSemaphoreGiveFromISR(Send_CAN_Msg, NULL);
+			count = 0;
+			}
 
 }
