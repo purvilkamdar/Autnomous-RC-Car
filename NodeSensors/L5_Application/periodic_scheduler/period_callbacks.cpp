@@ -38,6 +38,7 @@
 #include "string.h"
 #include "lpc_sys.h"
 #include "can.h"
+#include "file_logger.h"
 
 #define BUCKETS 12
 
@@ -222,15 +223,21 @@ bool period_reg_tlm(void)
 void period_1Hz(uint32_t count)
 {
 	LD.setNumber(middle_filter.filtered_val);
+
+	//LOG_INFO("Hello\n");
 }
 
 void period_10Hz(uint32_t count)
 {
 	if(xSemaphoreTake(Send_CAN_Msg, 0))
 			{
-			LE.toggle(1);
+			LE.toggle(4);
 			ApplyFilter();
+
+			//Log filtered left,middle & right sensor values
+			LOG_INFO("F %d %d %d\n",left_filter.filtered_val,middle_filter.filtered_val,right_filter.filtered_val);
 			Reset_filters();
+
 			}
 }
 
@@ -267,7 +274,6 @@ void period_1000Hz(uint32_t count)
 
 	    }
 
-
 		if(right)
 	    {
 		right = 0;
@@ -282,4 +288,6 @@ void period_1000Hz(uint32_t count)
 			xSemaphoreGiveFromISR(Send_CAN_Msg, NULL);
 			count_100 = 0;
 			}
+		//Log unfiltered sensor values
+		LOG_INFO("U %d %d %d\n",left_distance,middle_distance,right_distance);
 }
