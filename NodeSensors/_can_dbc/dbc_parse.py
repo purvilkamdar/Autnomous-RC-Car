@@ -622,7 +622,7 @@ class DBC(object):
 
 
 def main(argv):
-    dbcfile = '243.dbc'  # Default value unless overriden
+    dbcfile = 'C:\TITANS\TITANS_PROJECT_RC_CAR\243.dbc'  # Default value unless overriden
     self_node = 'DRIVER'  # Default value unless overriden
     gen_all = False
     muxed_signal = False
@@ -727,12 +727,12 @@ def main(argv):
             if not muxed_signal:
                 if (int(bit_start) < prev_signal_end):
                     print('/////////////////////////////// ERROR /////////////////////////////////////')
-                    print('#error ' + t[1] + ' start bit overwrites previous signal') 
+                    print('#error ' + t[1] + ' start bit overwrites previous signal')
                     print('/////////////////////////////// ERROR /////////////////////////////////////')
                     print('')
                     raise ValueError('#error ' + t[1] + ' start bit overwrites previous signal')
                 prev_signal_end = int(bit_start) + int(bit_size)
-            # Ensure a mux index 
+            # Ensure a mux index
             if muxed_signal:
                 if mux == '':
                     fixed_mux_signal = True
@@ -745,7 +745,7 @@ def main(argv):
                 if fixed_mux_signal:
                     if int(bit_start) < mux_bit_width:
                         print('/////////////////////////////// ERROR /////////////////////////////////////')
-                        print('#error ' + t[1] + ' start bit overwrites mux index') 
+                        print('#error ' + t[1] + ' start bit overwrites mux index')
                         print('/////////////////////////////// ERROR /////////////////////////////////////')
                         print('')
                         raise ValueError('#error ' + t[1] + ' start bit overwrites mux index')
@@ -754,7 +754,7 @@ def main(argv):
                         # Do not allow the signal to use the indexing bits
                         if int(bit_start) < fixed_signal_end:
                             print('/////////////////////////////// ERROR /////////////////////////////////////')
-                            print('#error ' + t[1] + ' start bit overwrites mux index') 
+                            print('#error ' + t[1] + ' start bit overwrites mux index')
                             print('/////////////////////////////// ERROR /////////////////////////////////////')
                             print('')
                             raise ValueError('#error ' + t[1] + ' start bit overwrites previous fixed signal')
@@ -762,14 +762,14 @@ def main(argv):
                         # Check for mux index out of bounds
                             if (int(mux[1:]) >= pow(2,mux_bit_width)) or (int(mux[1:]) < 0):
                                 print('/////////////////////////////// ERROR /////////////////////////////////////')
-                                print('#error ' + t[1] + ' mux index out of bounds.') 
+                                print('#error ' + t[1] + ' mux index out of bounds.')
                                 print('/////////////////////////////// ERROR /////////////////////////////////////')
                                 print('')
                                 raise ValueError('#error ' + t[1] + ' mux index out of bounds.')
 
                             if int(bit_start) < prev_signal_end:
                                 print('/////////////////////////////// ERROR /////////////////////////////////////')
-                                print('#error ' + t[1] + ' start bit overwrites previous signal') 
+                                print('#error ' + t[1] + ' start bit overwrites previous signal')
                                 print('/////////////////////////////// ERROR /////////////////////////////////////')
                                 print('')
                                 raise ValueError('#error ' + t[1] + ' start bit overwrites previous signal')
@@ -780,15 +780,15 @@ def main(argv):
             # Signal bit width is <= 0
             if (int(bit_size) <= 0):
                 print('/////////////////////////////// ERROR /////////////////////////////////////')
-                print('#error ' + t[1] + ' has invalid size. Signal bit width is: ' + str(int(bit_size))) 
+                print('#error ' + t[1] + ' has invalid size. Signal bit width is: ' + str(int(bit_size)))
                 print('/////////////////////////////// ERROR /////////////////////////////////////')
                 print('')
                 raise ValueError('#error ' + t[1] + ' has invalid size. Signal bit width is: ' + str(int(bit_size)))
-            
+
             # Signal is too wide for message
             if (int(bit_start) + int(bit_size)) > (int(msg_length) * 8):
                 print('/////////////////////////////// ERROR /////////////////////////////////////')
-                print('#error ' + t[1] + ' too large. Message needs ' + str(int(bit_start) + int(bit_size)) + ' bits.') 
+                print('#error ' + t[1] + ' too large. Message needs ' + str(int(bit_start) + int(bit_size)) + ' bits.')
                 print('/////////////////////////////// ERROR /////////////////////////////////////')
                 print('')
                 raise ValueError('#error ' + t[1] + ' too large. Message needs ' + str(int(bit_start) + int(bit_size)) + ' bits.')
@@ -809,7 +809,7 @@ def main(argv):
             if '-' in t[3]:
                 signal_min = -(float(scale) * pow(2,int(bit_size))) / 2
                 signal_max = (float(scale) * pow(2,int(bit_size)) / 2)
-            # If our min / max values are incorrect then clamping will not work correctly. 
+            # If our min / max values are incorrect then clamping will not work correctly.
             # Invalidate the DBC and print out the offending signal.
             signal_min = signal_min + float(offset)
             signal_max = signal_max + float(offset) - float(scale)
@@ -863,7 +863,7 @@ def main(argv):
                 if enum_name in dbc.messages[sig_mid].signals:
                     if dbc.messages[sig_mid].signals[enum_name].has_field_type:
                         dbc.messages[sig_mid].signals[enum_name].enum_info = pairs
-    
+
     # If there were errors in parsing the DBC file then do not continue with generation.
     if not validFile:
         sys.exit(-1)
