@@ -55,10 +55,10 @@ extern "C" {
  * So in an event when no logging calls occur and there is data in the buffer, we will write it to the
  * file after this time.
  */
-#define FILE_LOGGER_BUFFER_SIZE      (1 * 1024)     ///< Recommend multiples of 512
-#define FILE_LOGGER_NUM_BUFFERS      10             ///< Number of buffers (need to have enough while file is being written)
+#define FILE_LOGGER_BUFFER_SIZE      (1 * 5120)     ///< Recommend multiples of 512
+#define FILE_LOGGER_NUM_BUFFERS      100            ///< Number of buffers (need to have enough while file is being written)
 #define FILE_LOGGER_LOG_MSG_MAX_LEN  150            ///< Max length of a log message
-#define FILE_LOGGER_FILENAME         "0:log.csv"    ///< Destination filename (0: for SPI flash, 1: for SD card)
+#define FILE_LOGGER_FILENAME         "1:log.csv"    ///< Destination filename (0: for SPI flash, 1: for SD card)
 #define FILE_LOGGER_STACK_SIZE       (3 * 512 / 4)  ///< Stack size in 32-bit (1 = 4 bytes for 32-bit CPU)
 #define FILE_LOGGER_FLUSH_TIME_SEC   (1 * 60)       ///< Logs are flushed after this time
 #define FILE_LOGGER_BLOCK_TIME_MS    (10)           ///< If no buffer available within this time, block time counter will increment
