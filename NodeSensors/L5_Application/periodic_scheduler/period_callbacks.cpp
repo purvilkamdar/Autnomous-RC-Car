@@ -202,8 +202,8 @@ bool period_init(void)
 	      CAN_init(can1,100,5,5,NULL,NULL);
 
 		  //CAN message Filter
-	      const can_std_id_t slist[]  = { CAN_gen_sid(can1, 0x030),   // Acknowledgment from the nodes that received sensor reading
-										  CAN_gen_sid(can1, 0x031) }; // Only 1 ID is expected, hence small range
+	      const can_std_id_t slist[]  = { CAN_gen_sid(can1, 0x020),   // Acknowledgment from the nodes that received sensor reading
+										  CAN_gen_sid(can1, 0x021) }; // Only 1 ID is expected, hence small range
 
 	     CAN_setup_filter(slist, 2, NULL, 0, NULL, 0, NULL, 0);
 
@@ -255,9 +255,7 @@ bool period_reg_tlm(void)
 void period_1Hz(uint32_t count)
 {
 //LD.setNumber(left_filter.filtered_val);
-if(CAN_is_bus_off(can1))
-	 //Start the CAN bus
-	 CAN_reset_bus(can1);
+
 }
 
 can_msg_t can_msg_tx;
@@ -269,16 +267,14 @@ void period_10Hz(uint32_t count)
 			LE.toggle(4);
 			ApplyFilter();
 
-			sonic_sensors_HB.SENSOR_HEARTBEAT_cmd = left_filter.filtered_val;
+
 			//Log filtered left,middle & right sensor values
 			//LOG_INFO("F %d %d %d\n",left_filter.filtered_val,middle_filter.filtered_val,right_filter.filtered_val);
-			dbc_encode_and_send_SENSOR_HB(&sonic_sensors_HB);
-
 			Reset_filters();
 			}
 }
 
-MOTOR_HB_t motor_hb_msg = { 0 };
+MASTER_HB_t master_hb_msg = { 0 };
 void period_100Hz(uint32_t count)
 {
     can_msg_t can_msg;
@@ -294,13 +290,21 @@ void period_100Hz(uint32_t count)
             can_msg_hdr.mid = can_msg.msg_id;
 
             // Attempt to decode the message (brute force, but should use switch/case with MID)
-            dbc_decode_MOTOR_HB(&motor_hb_msg, can_msg.data.bytes, &can_msg_hdr);
+            dbc_decode_MASTER_HB(&master_hb_msg, can_msg.data.bytes, &can_msg_hdr);
 
-            LD.setNumber(motor_hb_msg.MOTOR_HEARTBEAT_cmd);
-
+            if(can_msg_hdr.mid == 0x20)
+            {
+            LD.setNumber(master_hb_msg.MASTER_HEARTBEAT_cmd);
+            sonic_sensors_HB.SENSOR_HEARTBEAT_cmd = left_filter.filtered_val;
+            dbc_encode_and_send_SENSOR_HB(&sonic_sensors_HB);
+            }
+            else
+            	LD.setNumber(0);
            }
 
-
+       if(CAN_is_bus_off(can1))
+       	 //Start the CAN bus
+       	 CAN_reset_bus(can1);
 }
 
 // 1Khz (1ms) is only run if Periodic Dispatcher was configured to run it at main():
