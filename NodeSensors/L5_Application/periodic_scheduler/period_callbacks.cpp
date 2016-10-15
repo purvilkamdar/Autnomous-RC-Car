@@ -39,8 +39,25 @@
 #include "lpc_sys.h"
 #include "can.h"
 #include "file_logger.h"
+#include "generated_can.h"
 
-#define BUCKETS 12
+
+
+bool dbc_app_send_can_msg(uint32_t mid, uint8_t dlc, uint8_t bytes[8])
+{
+    can_msg_t can_msg = { 0 };
+    can_msg.msg_id                = mid;
+    can_msg.frame_fields.data_len = dlc;
+    memcpy(can_msg.data.bytes, bytes, dlc);
+
+    return CAN_tx(can1, &can_msg, 0);
+}
+
+SENSOR_HB_t sonic_sensors_HB = {0};
+
+/* 21 buckets - 6.5 meters(256 inches) is the max range of sonic sensors.
+ 256 inches is divided into 12 inch ranges - total 21 buckets (12 * 21 ~ 252 inches) */
+#define BUCKETS 21
 
 /* GLOBALS */
 int start = 0;
@@ -49,7 +66,6 @@ int left_distance = 0;
 int middle_distance = 0;
 int right_distance = 0;
 int distance = 0;
-bool left = 0,middle = 0,right = 0;
 
 GPIO sensor_trigger_left(P2_3);
 GPIO sensor_trigger_middle(P2_4);
@@ -66,14 +82,17 @@ int INDEX;
 int filtered_val;
 }ModeFilter;
 
+enum SENSOR{LEFT,MIDDLE,RIGHT,WAIT};
+SENSOR sensor;
+
 ModeFilter left_filter;
 ModeFilter middle_filter;
 ModeFilter right_filter;
 
 int HashIt(int Val)
 {
-	if(Val/12 > 12)   // 12 inches = 1 foot
-		return 12;
+	if(Val/12 > BUCKETS)   // 12 inches = 1 foot
+		return BUCKETS;
 	else
 	return (Val / 12);
 }
@@ -115,14 +134,13 @@ void sensor_fall_left(void)
 	stop = sys_get_uptime_us();
 	//distance = (stop - start)/58;
 	left_distance = (stop - start)/147;
-	distance = left_distance;
 	  int index = HashIt(left_distance);
 	      left_filter.sum[index] += left_distance;
 	      left_filter.count[index] ++;
 	      if(left_filter.count[index] > left_filter.MAX)
 	      	{left_filter.MAX = left_filter.count[index];
 	      	left_filter.INDEX = index;}
-	middle = 1;
+	sensor = MIDDLE;
 	}
 
 void sensor_rise_middle(void)
@@ -135,14 +153,13 @@ void sensor_fall_middle(void)
 	stop = sys_get_uptime_us();
 	//distance = (stop - start)/58;
 	middle_distance = (stop - start)/147;
-	distance = middle_distance;
 	int index = HashIt(middle_distance);
 			      middle_filter.sum[index] += middle_distance;
 			      middle_filter.count[index] ++;
 			      if(middle_filter.count[index] > middle_filter.MAX)
 			      	{middle_filter.MAX = middle_filter.count[index];
 			      	 middle_filter.INDEX = index;}
-	right = 1;
+	sensor = RIGHT;
 
 	}
 
@@ -156,14 +173,13 @@ void sensor_fall_right(void)
 	stop = sys_get_uptime_us();
 	//distance = (stop - start)/58;      // In cms
 	right_distance = (stop - start)/147; //In inches
-	distance = right_distance;
 	int index = HashIt(right_distance);
-    right_filter.sum[index] += right_distance;
-    right_filter.count[index] ++;
-    if(right_filter.count[index] > right_filter.MAX)
-    	{right_filter.MAX = right_filter.count[index];
-    	 right_filter.INDEX = index;}
-	left = 1;
+				right_filter.sum[index] += right_distance;
+				right_filter.count[index] ++;
+				if(right_filter.count[index] > right_filter.MAX)
+					{right_filter.MAX = right_filter.count[index];
+					 right_filter.INDEX = index;}
+	sensor = LEFT;
 	}
 
 /// This is the stack size used for each of the period tasks (1Hz, 10Hz, 100Hz, and 1000Hz)
@@ -180,6 +196,20 @@ const uint32_t PERIOD_DISPATCHER_TASK_STACK_SIZE_BYTES = (512 * 3);
 /// Called once before the RTOS is started, this is a good place to initialize things once
 bool period_init(void)
 {
+	   /* CAN INIT */
+
+	      //can1 init at a baud rate of 250
+	      CAN_init(can1,100,5,5,NULL,NULL);
+
+		  //CAN message Filter
+	      const can_std_id_t slist[]  = { CAN_gen_sid(can1, 0x030),   // Acknowledgment from the nodes that received sensor reading
+										  CAN_gen_sid(can1, 0x031) }; // Only 1 ID is expected, hence small range
+
+	     CAN_setup_filter(slist, 2, NULL, 0, NULL, 0, NULL, 0);
+
+		 //Start the CAN bus
+		 CAN_reset_bus(can1);
+
 
 	      vSemaphoreCreateBinary(Send_CAN_Msg);
 
@@ -202,7 +232,9 @@ bool period_init(void)
 		  const uint8_t port2_2 = 2;
 	      eint3_enable_port2(port2_2, eint_rising_edge, sensor_rise_right);
 	      eint3_enable_port2(port2_2, eint_falling_edge, sensor_fall_right);
-	      left = 1;
+
+	      //Trigger the left sensor first
+	      sensor = LEFT;
 
 	return true; // Must return true upon success
 }
@@ -222,10 +254,13 @@ bool period_reg_tlm(void)
 
 void period_1Hz(uint32_t count)
 {
-	LD.setNumber(middle_filter.filtered_val);
-
-	//LOG_INFO("Hello\n");
+//LD.setNumber(left_filter.filtered_val);
+if(CAN_is_bus_off(can1))
+	 //Start the CAN bus
+	 CAN_reset_bus(can1);
 }
+
+can_msg_t can_msg_tx;
 
 void period_10Hz(uint32_t count)
 {
@@ -234,15 +269,37 @@ void period_10Hz(uint32_t count)
 			LE.toggle(4);
 			ApplyFilter();
 
+			sonic_sensors_HB.SENSOR_HEARTBEAT_cmd = left_filter.filtered_val;
 			//Log filtered left,middle & right sensor values
-			LOG_INFO("F %d %d %d\n",left_filter.filtered_val,middle_filter.filtered_val,right_filter.filtered_val);
-			Reset_filters();
+			//LOG_INFO("F %d %d %d\n",left_filter.filtered_val,middle_filter.filtered_val,right_filter.filtered_val);
+			dbc_encode_and_send_SENSOR_HB(&sonic_sensors_HB);
 
+			Reset_filters();
 			}
 }
 
+MOTOR_HB_t motor_hb_msg = { 0 };
 void period_100Hz(uint32_t count)
 {
+    can_msg_t can_msg;
+   // LD.setNumber(0);
+
+        // Empty all of the queued, and received messages within the last 10ms (100Hz callback frequency)
+       if (CAN_rx(can1, &can_msg, 0))
+        {
+    	   LE.toggle(2);
+            // Form the message header from the metadata of the arriving message
+            dbc_msg_hdr_t can_msg_hdr;
+            can_msg_hdr.dlc = can_msg.frame_fields.data_len;
+            can_msg_hdr.mid = can_msg.msg_id;
+
+            // Attempt to decode the message (brute force, but should use switch/case with MID)
+            dbc_decode_MOTOR_HB(&motor_hb_msg, can_msg.data.bytes, &can_msg_hdr);
+
+            LD.setNumber(motor_hb_msg.MOTOR_HEARTBEAT_cmd);
+
+           }
+
 
 }
 
@@ -254,40 +311,51 @@ void period_1000Hz(uint32_t count)
 		static int count_100 = 0;
 		count_100 ++;
 
-		if(left)
+		switch(sensor)
+		{
+		case LEFT: //trigger left sensor
 	    {
-		left = 0;
+		sensor = WAIT;
 		LE.toggle(1);
 		sensor_trigger_right.setLow();
 		sensor_trigger_left.setHigh();
 		delay_us(25);
-
+		break;
 	    }
 
-		if(middle)
+		case MIDDLE: //trigger middle sensor
 	    {
-		middle = 0;
-		LE.toggle(2);
+		sensor = WAIT;
+		//LE.toggle(2);
 		sensor_trigger_left.setLow();
 		sensor_trigger_middle.setHigh();
 		delay_us(25);
-
+		break;
 	    }
 
-		if(right)
+		case RIGHT: //trigger right sensor
 	    {
-		right = 0;
+		sensor = WAIT;
 	    LE.toggle(3);
 	    sensor_trigger_middle.setLow();
 	    sensor_trigger_right.setHigh();
 		delay_us(25);
+	    break;
 	    }
 
+		case WAIT: //Wait for the falling edge of PWM signal from the triggered sensor before triggering next one
+			break;
+		}
+
+/*Apply filter every 100 sensor reading - filter is applied on 100ms task. Give semaphore to 100ms task once
+  100 readings are taken from the sensors*/
 		if(count_100 == 100)
 			{
 			xSemaphoreGiveFromISR(Send_CAN_Msg, NULL);
 			count_100 = 0;
 			}
+
 		//Log unfiltered sensor values
-		LOG_INFO("U %d %d %d\n",left_distance,middle_distance,right_distance);
+		//LOG_INFO("U %d %d %d\n",left_distance,middle_distance,right_distance);
+
 }
