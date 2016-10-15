@@ -622,8 +622,8 @@ class DBC(object):
 
 
 def main(argv):
-    dbcfile = '243.dbc'  # Default value unless overriden
-    self_node = 'DRIVER'  # Default value unless overriden
+    dbcfile = 'C:/TITAN_RC_CAR/TITANS_PROJECT_RC_CAR/243.dbc'  # Default value unless overriden
+    self_node = 'APP'  # Default value unless overriden
     gen_all = False
     muxed_signal = False
     mux_bit_width = 0
