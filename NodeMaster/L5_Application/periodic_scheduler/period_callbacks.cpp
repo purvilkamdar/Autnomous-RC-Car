@@ -31,7 +31,8 @@
 #include <stdint.h>
 #include "io.hpp"
 #include "periodic_callback.h"
-
+#include "../RCMaster/coordinator.h"
+#include "../RCMaster/MotorControl.h"
 
 
 /// This is the stack size used for each of the period tasks (1Hz, 10Hz, 100Hz, and 1000Hz)
@@ -46,6 +47,8 @@ const uint32_t PERIOD_TASKS_STACK_SIZE_BYTES = (512 * 4);
 const uint32_t PERIOD_DISPATCHER_TASK_STACK_SIZE_BYTES = (512 * 3);
 
 /// Called once before the RTOS is started, this is a good place to initialize things once
+coordinator* NodeCoordinator = new coordinator();
+
 bool period_init(void)
 {
     return true; // Must return true upon success
@@ -66,7 +69,14 @@ bool period_reg_tlm(void)
 
 void period_1Hz(uint32_t count)
 {
-    LE.toggle(1);
+	if(NodeCoordinator->getNodeStatus())
+//	{
+		NodeCoordinator->onStatusReceived();
+//	}
+
+	printf("Hello\n");
+
+    //LE.toggle(1);
 }
 
 void period_10Hz(uint32_t count)

@@ -10,13 +10,15 @@
 
 #include "NodeControl.h"
 
-class MotorControl : public NodeControl {
+class MotorControl {//: public NodeControl {
 public:
 	MotorControl();
 	virtual ~MotorControl();
 	bool getStatus();
 	bool sendOrder();
-	void setName(char* name);
+	void setName();
+private:
+	char* nodeName;
 };
 
 #endif /* L5_APPLICATION_RCMASTER_MOTORCONTROL_H_ */

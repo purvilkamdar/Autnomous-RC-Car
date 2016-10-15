@@ -9,6 +9,7 @@
 #define L5_APPLICATION_RCMASTER_NODECONTROL_H_
 
 #include <stdio.h>
+#include <string.h>
 
 #define MAX_NAME_CHARS 50
 
@@ -18,10 +19,9 @@ public:
 	virtual ~NodeControl();
 	virtual bool getStatus();
 	virtual bool sendOrder();
+	virtual void setName ();
 protected:
-	virtual void setName (char* name) = 0;
-private :
-	char* nodeName[MAX_NAME_CHARS];
+	char* nodeName;
 
 };
 

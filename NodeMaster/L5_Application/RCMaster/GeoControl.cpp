@@ -12,9 +12,9 @@ GeoControl::GeoControl() {
 
 }
 
-//void GeoControl::setName(char* name){
-//
-//}
+void GeoControl::setName(){
+    strcpy(nodeName, "GeoNode");
+}
 
 GeoControl::~GeoControl() {
 	// TODO Auto-generated destructor stub

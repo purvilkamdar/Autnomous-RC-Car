@@ -16,3 +16,6 @@ SensorsControl::~SensorsControl() {
 	// TODO Auto-generated destructor stub
 }
 
+void SensorsControl::setName(){
+    strcpy(nodeName, "SensorsNode");
+}

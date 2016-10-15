@@ -10,11 +10,15 @@
 
 #include "NodeControl.h"
 
-class SensorsControl : public NodeControl {
+class SensorsControl {//: public NodeControl {
 public:
 	SensorsControl();
 	virtual ~SensorsControl();
-	void setName(char* name);
+	bool getStatus();
+	bool sendOrder();
+	void setName();
+private:
+	char* nodeName;
 };
 
 #endif /* L5_APPLICATION_RCMASTER_SENSORSCONTROL_H_ */

@@ -10,11 +10,15 @@
 
 #include "NodeControl.h"
 
-class MobileControl : public NodeControl {
+class MobileControl {//: public NodeControl {
 public:
 	MobileControl();
 	virtual ~MobileControl();
-	void setName(char* name);
+	bool getStatus();
+	bool sendOrder();
+	void setName();
+private:
+	char* nodeName;
 };
 
 #endif /* L5_APPLICATION_RCMASTER_MOBILECONTROL_H_ */

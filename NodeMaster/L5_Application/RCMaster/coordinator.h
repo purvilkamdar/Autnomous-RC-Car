@@ -9,21 +9,28 @@
 #define L5_APPLICATION_RCMASTER_COORDINATOR_H_
 
 #include "NodeControl.h"
+#include "GeoControl.h"
+#include "MotorControl.h"
+#include "SensorsControl.h"
+#include "MobileControl.h"
+//#include "singleton_template.hpp"
 
-class coordinator {
+class coordinator {    //: public SingletonTemplate<coordinator> {
 public:
-	coordinator();
+
 	virtual ~coordinator();
 	void on1HzHearbeat();
 	bool getNodeStatus();
 	void onStatusReceived();
-	void onOrderSent();
+	void processAndSendOrder();
+	coordinator();
 private:
-	NodeControl *itsMotorNode;
-	NodeControl *itsSensorNode;
-	NodeControl *itsGeoNode;
-	NodeControl *itsMobileNode;
+	MotorControl *itsMotorNode;
+	SensorsControl *itsSensorNode;
+	GeoControl *itsGeoNode;
+	MobileControl *itsMobileNode;
 
+	//friend class SingletonTemplate<coordinator>;
 
 };
 

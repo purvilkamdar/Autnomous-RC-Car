@@ -9,15 +9,17 @@
 
 NodeControl::NodeControl() {
 	// TODO Auto-generated constructor stub
-
+    nodeName = NULL;
 }
 
 bool NodeControl::getStatus(){
 	printf("Getting status from node %s\n", nodeName);
+	return true;
 }
 
 bool NodeControl::sendOrder(){
 	printf("Sending order to node %s\n", nodeName);
+	return true;
 }
 
 

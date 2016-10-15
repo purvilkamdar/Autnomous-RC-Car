@@ -16,3 +16,6 @@ MobileControl::~MobileControl() {
 	// TODO Auto-generated destructor stub
 }
 
+void MobileControl::setName(){
+    strcpy(nodeName, "MobileNode");
+}
