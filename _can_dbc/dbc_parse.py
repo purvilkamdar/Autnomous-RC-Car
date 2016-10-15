@@ -9,8 +9,8 @@ from collections import OrderedDict
 This parses the Vector DBC file to generate code to marshal and unmarshal DBC defined messages
 
 Use Python (I used Python 3.5)
-python dbc_parse.py -i 243.dbc -s MOTOR
-Generate all code: dbc_parse.py -i 243.dbc -s MOTOR -a all > generated.h
+python dbc_parse.py -i 243.dbc -s GPS
+Generate all code: dbc_parse.py -i 243.dbc -s DRIVER -a all > generated.h
 """
 
 LINE_BEG = '%'
