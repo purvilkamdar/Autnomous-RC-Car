@@ -71,6 +71,7 @@ void period_1Hz(uint32_t count)
 
 void period_10Hz(uint32_t count)
 {
+	LE.toggle(1);
     LE.toggle(2);
 }
 
