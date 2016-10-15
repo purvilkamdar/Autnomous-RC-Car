@@ -1,8 +1,6 @@
 /*
  * gps_Node.cpp
  *
- *  Created on: Oct 13, 2016
- *      Author: ythao
  */
 #include <stdint.h>
 #include <stdio.h>
