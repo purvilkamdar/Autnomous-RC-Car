@@ -33,7 +33,8 @@
 #include "periodic_callback.h"
 #include "../RCMaster/coordinator.h"
 #include "../RCMaster/MotorControl.h"
-
+#include "../_can_dbc/generated_can.h"
+#include "can.h"
 
 /// This is the stack size used for each of the period tasks (1Hz, 10Hz, 100Hz, and 1000Hz)
 const uint32_t PERIOD_TASKS_STACK_SIZE_BYTES = (512 * 4);
@@ -48,9 +49,18 @@ const uint32_t PERIOD_DISPATCHER_TASK_STACK_SIZE_BYTES = (512 * 3);
 
 /// Called once before the RTOS is started, this is a good place to initialize things once
 coordinator* NodeCoordinator = new coordinator();
-
+/*void can_bus_off_cb()
+{
+	if(CAN_is_bus_off(can1))
+	{
+		CAN_reset_bus(can1);
+	}
+}*/
 bool period_init(void)
 {
+	CAN_init(can1,100,3,3,NULL,NULL);
+	CAN_bypass_filter_accept_all_msgs();
+	CAN_reset_bus(can1);
     return true; // Must return true upon success
 }
 
@@ -66,22 +76,41 @@ bool period_reg_tlm(void)
  * Below are your periodic functions.
  * The argument 'count' is the number of times each periodic task is called.
  */
+/*bool dbc_app_send_can_msg(uint32_t mid, uint8_t dlc, uint8_t bytes[8])
+{
+    can_msg_t can_msg = { 0 };
+    can_msg.msg_id                = mid;
+    can_msg.frame_fields.data_len = dlc;
+    memcpy(can_msg.data.bytes, bytes, dlc);
 
+    return CAN_tx(can1, &can_msg, 0);
+}*/
 void period_1Hz(uint32_t count)
 {
+
 	if(NodeCoordinator->getNodeStatus())
-//	{
+	{
+		//printf("Msg Received");
 		NodeCoordinator->onStatusReceived();
-//	}
+	}
+	/*MASTER_HB_t master_cmd ={0};
+	master_cmd.MASTER_HEARTBEAT_cmd=3;
 
-	printf("Hello\n");
+	    // This function will encode the CAN data bytes, and send the CAN msg using dbc_app_send_can_msg()
+	dbc_encode_and_send_MASTER_HB(&master_cmd);
 
-    //LE.toggle(1);
+
+	printf("Hello\n");*/
+
+    LE.toggle(1);
 }
 
 void period_10Hz(uint32_t count)
 {
-    LE.toggle(2);
+	if(CAN_is_bus_off(can1))
+			{
+				CAN_reset_bus(can1);
+			}
 }
 
 void period_100Hz(uint32_t count)

@@ -622,7 +622,7 @@ class DBC(object):
 
 
 def main(argv):
-    dbcfile = '243.dbc'  # Default value unless overriden
+    dbcfile = 'C:/Users/urvashi/Desktop/243/RC_car/TITANS_PROJECT_RC_CAR/243.dbc'  # Default value unless overriden
     self_node = 'DRIVER'  # Default value unless overriden
     gen_all = False
     muxed_signal = False

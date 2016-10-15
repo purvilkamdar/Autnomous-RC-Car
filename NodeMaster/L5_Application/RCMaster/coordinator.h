@@ -20,6 +20,7 @@ public:
 
 	virtual ~coordinator();
 	void on1HzHearbeat();
+	bool sendHeartbeat();
 	bool getNodeStatus();
 	void onStatusReceived();
 	void processAndSendOrder();
