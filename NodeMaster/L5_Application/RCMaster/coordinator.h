@@ -30,7 +30,7 @@ private:
 	SensorsControl *itsSensorNode;
 	GeoControl *itsGeoNode;
 	MobileControl *itsMobileNode;
- //comment
+ //comment 2
 	//friend class SingletonTemplate<coordinator>;
 
 };
