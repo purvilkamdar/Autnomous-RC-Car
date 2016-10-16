@@ -87,7 +87,7 @@ bool period_reg_tlm(void)
 }*/
 void period_1Hz(uint32_t count)
 {
-
+ //addng comment
 	if(NodeCoordinator->getNodeStatus())
 	{
 		//printf("Msg Received");
