@@ -80,14 +80,16 @@ bool period_reg_tlm(void)
 
 void period_1Hz(uint32_t count)
 {
-
+	check_reset_canbus();
 }
 
 void period_10Hz(uint32_t count)
 {
-	DRIVER_HEARTBEAT_t driver_can_msg = {};
-	GPS_READOUT_t gps_rx_data = {0};
+	MASTER_HB_t master_hb = {};
+	GPS_HB_t gps_hb = {0x1};
+	GPS_DATA_t gps_rx_data = {0};
 	can_msg_t can_msg;
+	can_msg_t can_msg2;
 
 	readGPS(GNRMC, &data_received);
 
@@ -102,26 +104,29 @@ void period_10Hz(uint32_t count)
 		can_msg_hdr.dlc = can_msg.frame_fields.data_len;
 		can_msg_hdr.mid = can_msg.msg_id;
 
-		//This line is to decode Heartbeat. Have not wrote code to recognize what type of heartbeat.
-		//This code isn't really used yet.
-		dbc_decode_DRIVER_HEARTBEAT(&driver_can_msg, can_msg.data.bytes, &can_msg_hdr);
-
-		//Checks to see if ID 100 is received. If so, send gps data on the bus.
-		if(can_msg_hdr.mid == 100)
+		//Checks to see if msg ID matches Mater's HB ID. If so, send GPS HB.
+		if(dbc_decode_MASTER_HB(&master_hb, can_msg.data.bytes, &can_msg_hdr))
 		{
-			dbc_encode_and_send_GPS_READOUT(&gps_rx_data);
+			dbc_encode_and_send_GPS_HB(&gps_hb);
 		}
+
 	}
 
-	//Quick Canbus Test using Switches
+/*
+	//Quick Canbus Test using on board Switches & LEDs
 	if(SW.getSwitch(1))
 	{
-		LE.on(1);
-		sendCan1_Any_Message(0x111, 0, 1, 0x11);
-		printf("Tx\n");
+		LE.toggle(1);
+		sendCan1_Any_Message(0x111, 0, 1, 1);
 	}
-	LE.off(1);
 
+	can_msg_t can_receiver_test;
+
+	if(CAN_rx(can2,&can_receiver_test,0))
+	{
+		LE.toggle(4);
+	}
+*/
 }
 
 void period_100Hz(uint32_t count)
