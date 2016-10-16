@@ -74,6 +74,12 @@ BO_ 48 MOTOR_HB: 1 MOTOR
  
 BO_ 64 GPS_HB: 1 GPS 
  SG_ GPS_HEARTBEAT_cmd : 0|8@1+ (1,0) [0|0] "" MASTER
+ 
+BO_ 65 GPS_Data: 8 GPS
+ SG_ GPS_READOUT_valid_bit : 0|1@1+ (1,0) [0|1] "" MASTER,MOTOR
+ SG_ GPS_READOUT_read_counter : 1|11@1+ (1,0) [0|2000] "" MASTER,MOTOR
+ SG_ GPS_READOUT_latitude : 12|26@1+ (0.000001,0) [0|0] "" MASTER,MOTOR
+ SG_ GPS_READOUT_longitude : 38|26@1- (0.000001,0) [0|0] "" MASTER,MOTOR
 
 BO_ 80 APP_HB: 1 APP 
  SG_ APP_HEARTBEAT_cmd : 0|8@1+ (1,0) [0|0] "" MASTER 

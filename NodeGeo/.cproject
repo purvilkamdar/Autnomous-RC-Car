@@ -329,6 +329,9 @@
 							</builder>
 							<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.1229075529" name="Cross ARM GNU Assembler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor.1884979898" name="Use preprocessor" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor" value="true" valueType="boolean"/>
+								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths.1987725508" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/lpc1758_freertos/_can_dbc}&quot;"/>
+								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input.1672272449" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input"/>
 							</tool>
 							<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.1489910595" name="Cross ARM C Compiler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler">
@@ -406,6 +409,58 @@
 							</tool>
 						</toolChain>
 					</folderInfo>
+					<folderInfo id="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.1987578660.200556452.449974164" name="/" resourcePath="_can_dbc">
+						<toolChain id="ilg.gnuarmeclipse.managedbuild.cross.toolchain.elf.debug.1942725371" name="Cross ARM GCC" superClass="ilg.gnuarmeclipse.managedbuild.cross.toolchain.elf.debug" unusedChildren="">
+							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.optimization.level.344295247.1523739999" name="Optimization Level" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.optimization.level.344295247"/>
+							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.optimization.messagelength.562794931.40072432" name="Message length (-fmessage-length=0)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.optimization.messagelength.562794931"/>
+							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.optimization.signedchar.1235520892.1857338839" name="'char' is signed (-fsigned-char)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.optimization.signedchar.1235520892"/>
+							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.optimization.functionsections.159203868.684953277" name="Function sections (-ffunction-sections)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.optimization.functionsections.159203868"/>
+							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.optimization.datasections.1864782048.267225597" name="Data sections (-fdata-sections)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.optimization.datasections.1864782048"/>
+							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.warnings.allwarn.834195135.40907485" name="Enable all common warnings (-Wall)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.warnings.allwarn.834195135"/>
+							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.debugging.level.1252139980.669602000" name="Debug level" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.debugging.level.1252139980"/>
+							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.debugging.format.1023648474.1674324836" name="Debug format" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.debugging.format.1023648474"/>
+							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.toolchain.name.1196994551.1878502259" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.toolchain.name.1196994551"/>
+							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.architecture.1605589700.693201256" name="Architecture" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.architecture.1605589700"/>
+							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.arm.target.family.1844496298.829157104" name="ARM family" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.arm.target.family.1844496298"/>
+							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.arm.target.instructionset.1858851171.1266347335" name="Instruction set" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.arm.target.instructionset.1858851171"/>
+							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.command.prefix.674499861.1876089929" name="Prefix" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.command.prefix.674499861"/>
+							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.command.c.463875233.383280841" name="C compiler" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.command.c.463875233"/>
+							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.command.cpp.862123691.1146896034" name="C++ compiler" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.command.cpp.862123691"/>
+							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.command.objcopy.717138264.246810568" name="Hex/Bin converter" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.command.objcopy.717138264"/>
+							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.command.objdump.1748462357.1748614161" name="Listing generator" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.command.objdump.1748462357"/>
+							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.command.size.88156723.549497732" name="Size command" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.command.size.88156723"/>
+							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.command.make.1962058582.1472915431" name="Build command" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.command.make.1962058582"/>
+							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.command.rm.152829111.1149425139" name="Remove command" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.command.rm.152829111"/>
+							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.addtools.createflash.2023594263.1310783570" name="Create flash image" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.addtools.createflash.2023594263"/>
+							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.addtools.createlisting.2126828913.482304852" name="Create extended listing" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.addtools.createlisting.2126828913"/>
+							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.addtools.printsize.229949241.619950062" name="Print size" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.addtools.printsize.229949241"/>
+							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.arm.target.endianness.1952563174.1556643733" name="Endianness" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.arm.target.endianness.1952563174"/>
+							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.warnings.extrawarn.620042560.1756674030" name="Enable extra warnings (-Wextra)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.warnings.extrawarn.620042560"/>
+							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.warnings.unitialized.1285611889.390883205" name="Warn on uninitialized variables (-Wuninitialised)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.warnings.unitialized.1285611889"/>
+							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.warnings.floatequal.1028896248.1995724413" name="Warn if floats are compared as equal (-Wfloat-equal)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.warnings.floatequal.1028896248"/>
+							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.warnings.shadow.1600003020.2011750544" name="Warn if shadowed variable (-Wshadow)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.warnings.shadow.1600003020"/>
+							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.warnings.logicalop.486981131.1148632627" name="Warn if suspicious logical ops (-Wlogical-op)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.warnings.logicalop.486981131"/>
+							<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.1284503390" name="Cross ARM GNU Assembler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.1229075529">
+								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths.1240521992" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/lpc1758_freertos/_can_dbc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Users\ythao\Documents\cmpe243_project\TITANS_PROJECT_RC_CAR\&quot;"/>
+								</option>
+								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input.1182673257" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input"/>
+							</tool>
+							<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.93528380" name="Cross ARM C Compiler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.1489910595">
+								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input.2035465585" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input"/>
+							</tool>
+							<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.61738098" name="Cross ARM C++ Compiler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.2121798175">
+								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.input.2019438386" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.input"/>
+							</tool>
+							<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.linker.1010547976" name="Cross ARM C Linker" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.linker.1544201716"/>
+							<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.linker.483186408" name="Cross ARM C++ Linker" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.linker.1121299549"/>
+							<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.archiver.1557959525" name="Cross ARM GNU Archiver" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.archiver.520785249"/>
+							<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.createflash.1453148165" name="Cross ARM GNU Create Flash Image" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.createflash.1267784997"/>
+							<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.createlisting.1637965368" name="Cross ARM GNU Create Listing" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.createlisting.2018592357"/>
+							<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.printsize.1474963983" name="Cross ARM GNU Print Size" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.printsize.220839864"/>
+						</toolChain>
+					</folderInfo>
 					<sourceEntries>
 						<entry excluding="L1_FreeRTOS/portable/mpu|L1_FreeRTOS/portable_mpu" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
@@ -418,39 +473,6 @@
 	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
 		<project id="test.ilg.gnuarmeclipse.managedbuild.cross.target.elf.286357136" name="Executable" projectType="ilg.gnuarmeclipse.managedbuild.cross.target.elf"/>
 	</storageModule>
-	<storageModule moduleId="scannerConfiguration">
-		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		<scannerConfigBuildInfo instanceId="org.eclipse.cdt.cross.arm.gnu.windows.elf.release.1646942652;org.eclipse.cdt.cross.arm.gnu.windows.elf.release.1646942652.;org.eclipse.cdt.cross.arm.gnu.windows.elf.cpp.compiler.release.1095233171;org.eclipse.cdt.cross.arm.gnu.windows.cpp.compiler.base.input.1043249607">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.cross.arm.gnu.ARM_GCCWinManagedMakePerProjectProfileCPP"/>
-		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="org.eclipse.cdt.cross.arm.gnu.windows.elf.debug.2021928717;org.eclipse.cdt.cross.arm.gnu.windows.elf.debug.2021928717.;org.eclipse.cdt.cross.arm.gnu.windows.elf.assembler.debug.1279343730;org.eclipse.cdt.cross.arm.gnu.windows.assembler.base.input.461945496">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.cross.arm.gnu.ARM_GCCWinManagedMakePerProjectProfileC"/>
-		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.1987578660;ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.1987578660.;ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.1110595610;ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.input.2050870165">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="ilg.gnuarmeclipse.managedbuild.cross.config.elf.release.2048000695;ilg.gnuarmeclipse.managedbuild.cross.config.elf.release.2048000695.;ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.787943826;ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.input.1741126483">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="org.eclipse.cdt.cross.arm.gnu.windows.elf.release.1646942652;org.eclipse.cdt.cross.arm.gnu.windows.elf.release.1646942652.;org.eclipse.cdt.cross.arm.gnu.windows.elf.assembler.release.588538478;org.eclipse.cdt.cross.arm.gnu.windows.assembler.base.input.1021850180">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.cross.arm.gnu.ARM_GCCWinManagedMakePerProjectProfileC"/>
-		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="org.eclipse.cdt.cross.arm.gnu.windows.elf.debug.2021928717;org.eclipse.cdt.cross.arm.gnu.windows.elf.debug.2021928717.;org.eclipse.cdt.cross.arm.gnu.windows.elf.c.compiler.debug.994636162;org.eclipse.cdt.cross.arm.gnu.windows.c.compiler.base.input.1185229898">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.cross.arm.gnu.ARM_GCCWinManagedMakePerProjectProfileC"/>
-		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="org.eclipse.cdt.cross.arm.gnu.windows.elf.release.1646942652;org.eclipse.cdt.cross.arm.gnu.windows.elf.release.1646942652.;org.eclipse.cdt.cross.arm.gnu.windows.elf.c.compiler.release.973628061;org.eclipse.cdt.cross.arm.gnu.windows.c.compiler.base.input.170431532">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.cross.arm.gnu.ARM_GCCWinManagedMakePerProjectProfileC"/>
-		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="org.eclipse.cdt.cross.arm.gnu.windows.elf.debug.2021928717;org.eclipse.cdt.cross.arm.gnu.windows.elf.debug.2021928717.;org.eclipse.cdt.cross.arm.gnu.windows.elf.cpp.compiler.debug.1225627368;org.eclipse.cdt.cross.arm.gnu.windows.cpp.compiler.base.input.1644142609">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.cross.arm.gnu.ARM_GCCWinManagedMakePerProjectProfileCPP"/>
-		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.1987578660;ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.1987578660.;ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.1015572248;ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input.1130823891">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="ilg.gnuarmeclipse.managedbuild.cross.config.elf.release.2048000695;ilg.gnuarmeclipse.managedbuild.cross.config.elf.release.2048000695.;ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.147170095;ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input.1326595176">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		</scannerConfigBuildInfo>
-	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
 	<storageModule moduleId="refreshScope" versionNumber="2">
 		<configuration configurationName="_build_mpu"/>
@@ -459,4 +481,43 @@
 		</configuration>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
+	<storageModule moduleId="scannerConfiguration">
+		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		<scannerConfigBuildInfo instanceId="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.1987578660;ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.1987578660.;ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.1015572248;ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input.1130823891">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="org.eclipse.cdt.cross.arm.gnu.windows.elf.debug.2021928717;org.eclipse.cdt.cross.arm.gnu.windows.elf.debug.2021928717.;org.eclipse.cdt.cross.arm.gnu.windows.elf.assembler.debug.1279343730;org.eclipse.cdt.cross.arm.gnu.windows.assembler.base.input.461945496">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.cross.arm.gnu.ARM_GCCWinManagedMakePerProjectProfileC"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="org.eclipse.cdt.cross.arm.gnu.windows.elf.release.1646942652;org.eclipse.cdt.cross.arm.gnu.windows.elf.release.1646942652.;org.eclipse.cdt.cross.arm.gnu.windows.elf.c.compiler.release.973628061;org.eclipse.cdt.cross.arm.gnu.windows.c.compiler.base.input.170431532">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.cross.arm.gnu.ARM_GCCWinManagedMakePerProjectProfileC"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="ilg.gnuarmeclipse.managedbuild.cross.config.elf.release.2048000695;ilg.gnuarmeclipse.managedbuild.cross.config.elf.release.2048000695.;ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.147170095;ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input.1326595176">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="ilg.gnuarmeclipse.managedbuild.cross.config.elf.release.2048000695;ilg.gnuarmeclipse.managedbuild.cross.config.elf.release.2048000695.;ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.787943826;ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.input.1741126483">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="org.eclipse.cdt.cross.arm.gnu.windows.elf.release.1646942652;org.eclipse.cdt.cross.arm.gnu.windows.elf.release.1646942652.;org.eclipse.cdt.cross.arm.gnu.windows.elf.assembler.release.588538478;org.eclipse.cdt.cross.arm.gnu.windows.assembler.base.input.1021850180">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.cross.arm.gnu.ARM_GCCWinManagedMakePerProjectProfileC"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="org.eclipse.cdt.cross.arm.gnu.windows.elf.release.1646942652;org.eclipse.cdt.cross.arm.gnu.windows.elf.release.1646942652.;org.eclipse.cdt.cross.arm.gnu.windows.elf.cpp.compiler.release.1095233171;org.eclipse.cdt.cross.arm.gnu.windows.cpp.compiler.base.input.1043249607">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.cross.arm.gnu.ARM_GCCWinManagedMakePerProjectProfileCPP"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.1987578660;ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.1987578660.;ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.1110595610;ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.input.2050870165">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="org.eclipse.cdt.cross.arm.gnu.windows.elf.debug.2021928717;org.eclipse.cdt.cross.arm.gnu.windows.elf.debug.2021928717.;org.eclipse.cdt.cross.arm.gnu.windows.elf.c.compiler.debug.994636162;org.eclipse.cdt.cross.arm.gnu.windows.c.compiler.base.input.1185229898">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.cross.arm.gnu.ARM_GCCWinManagedMakePerProjectProfileC"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.1987578660.200556452;ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.1987578660.200556452.;ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.1489910595;ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input.852781233">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.1987578660.200556452;ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.1987578660.200556452.;ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.2121798175;ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.input.984248315">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="org.eclipse.cdt.cross.arm.gnu.windows.elf.debug.2021928717;org.eclipse.cdt.cross.arm.gnu.windows.elf.debug.2021928717.;org.eclipse.cdt.cross.arm.gnu.windows.elf.cpp.compiler.debug.1225627368;org.eclipse.cdt.cross.arm.gnu.windows.cpp.compiler.base.input.1644142609">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.cross.arm.gnu.ARM_GCCWinManagedMakePerProjectProfileCPP"/>
+		</scannerConfigBuildInfo>
+	</storageModule>
 </cproject>
