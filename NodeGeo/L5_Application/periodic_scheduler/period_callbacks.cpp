@@ -85,16 +85,11 @@ void period_1Hz(uint32_t count)
 
 void period_10Hz(uint32_t count)
 {
-	DRIVER_HEARTBEAT_t driver_can_msg = {};
-	GPS_READOUT_t gps_rx_data = {0};
+	MASTER_HB_t master_can_msg = {0};
+	//GPS_READOUT_t gps_rx_data = {0};
+	GPS_HB_t gps_tx = {0};
 	can_msg_t can_msg;
 
-	readGPS(GNRMC, &data_received);
-
-	gps_rx_data.GPS_READOUT_valid_bit = data_received.valid_bit;
-	gps_rx_data.GPS_READOUT_read_counter = data_received.counter;
-	gps_rx_data.GPS_READOUT_latitude = data_received.latitude;
-	gps_rx_data.GPS_READOUT_longitude = data_received.longitude;
 
 	while(CAN_rx(can1, &can_msg,0))
 	{
@@ -104,23 +99,16 @@ void period_10Hz(uint32_t count)
 
 		//This line is to decode Heartbeat. Have not wrote code to recognize what type of heartbeat.
 		//This code isn't really used yet.
-		dbc_decode_DRIVER_HEARTBEAT(&driver_can_msg, can_msg.data.bytes, &can_msg_hdr);
+		dbc_decode_MASTER_HB(&master_can_msg, can_msg.data.bytes, &can_msg_hdr);
 
 		//Checks to see if ID 100 is received. If so, send gps data on the bus.
 		if(can_msg_hdr.mid == 100)
 		{
-			dbc_encode_and_send_GPS_READOUT(&gps_rx_data);
+			dbc_encode_and_send_GPS_HB(&gps_tx);
 		}
 	}
 
-	//Quick Canbus Test using Switches
-	if(SW.getSwitch(1))
-	{
-		LE.on(1);
-		sendCan1_Any_Message(0x111, 0, 1, 0x11);
-		printf("Tx\n");
-	}
-	LE.off(1);
+
 
 }
 
