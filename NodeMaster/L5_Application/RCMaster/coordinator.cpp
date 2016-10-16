@@ -67,7 +67,7 @@ bool coordinator::getNodeStatus(){
            dbc_msg_hdr_t can_msg_hdr;
            can_msg_hdr.dlc = can_msg.frame_fields.data_len;
            can_msg_hdr.mid = can_msg.msg_id;
-
+//enyer
 
            	//prinf();
            // Attempt to decode the message (brute force, but should use switch/case with MID)
