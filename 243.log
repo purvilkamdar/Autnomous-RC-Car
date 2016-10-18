@@ -1,0 +1,48 @@
+Conversion Warnings Log
+
+
+MSG_ID: 500 	MSG_TYPE: S 	MSG_NAME: DBC_TEST1
+	SIG_NAME: DBC_TEST1_unsigned1, STATUS: Invalid Max or Min value., ACTION: Value Set to default
+	SIG_NAME: DBC_TEST1_enum, STATUS: Invalid Max or Min value., ACTION: Value Set to default
+	SIG_NAME: DBC_TEST1_float, STATUS: Invalid Max or Min value., ACTION: Value Set to default
+
+MSG_ID: 501 	MSG_TYPE: S 	MSG_NAME: DBC_TEST2
+	SIG_NAME: DBC_TEST2_real_signed1, STATUS: Invalid Max or Min value., ACTION: Value Set to default
+	SIG_NAME: DBC_TEST2_real_signed2, STATUS: Invalid Max or Min value., ACTION: Value Set to default
+	SIG_NAME: DBC_TEST2_signed, STATUS: Invalid Max or Min value., ACTION: Value Set to default
+
+MSG_ID: 502 	MSG_TYPE: S 	MSG_NAME: DBC_TEST3
+	SIG_NAME: DBC_TEST3_real_signed1, STATUS: Invalid Max or Min value., ACTION: Value Set to default
+	SIG_NAME: DBC_TEST3_real_signed2, STATUS: Invalid Max or Min value., ACTION: Value Set to default
+
+MSG_ID: 100 	MSG_TYPE: S 	MSG_NAME: DRIVER_HEARTBEAT
+	SIG_NAME: DRIVER_HEARTBEAT_cmd, STATUS: Invalid Max or Min value., ACTION: Value Set to default
+
+MSG_ID: 400 	MSG_TYPE: S 	MSG_NAME: MOTOR_STATUS
+	SIG_NAME: MOTOR_STATUS_wheel_error, STATUS: Invalid Max or Min value., ACTION: Value Set to default
+	SIG_NAME: MOTOR_STATUS_speed_kph, STATUS: Invalid Max or Min value., ACTION: Value Set to default
+
+MSG_ID: 422 	MSG_TYPE: S 	MSG_NAME: SENSOR_HB
+	SIG_NAME: SENSOR_HEARTBEAT_cmd, STATUS: Invalid Max or Min value., ACTION: Value Set to default
+
+MSG_ID: 420 	MSG_TYPE: S 	MSG_NAME: MOTOR_HB
+	SIG_NAME: MOTOR_HEARTBEAT_cmd, STATUS: Invalid Max or Min value., ACTION: Value Set to default
+
+MSG_ID: 200 	MSG_TYPE: S 	MSG_NAME: SENSOR_SONARS
+	SIG_NAME: SENSOR_SONARS_mux, STATUS: Invalid Max or Min value., ACTION: Value Set to default
+	SIG_NAME: SENSOR_SONARS_err_count, STATUS: Invalid Max or Min value., ACTION: Value Set to default
+	SIG_NAME: SENSOR_SONARS_left, STATUS: Invalid Max or Min value., ACTION: Value Set to default
+	SIG_NAME: SENSOR_SONARS_middle, STATUS: Invalid Max or Min value., ACTION: Value Set to default
+	SIG_NAME: SENSOR_SONARS_right, STATUS: Invalid Max or Min value., ACTION: Value Set to default
+	SIG_NAME: SENSOR_SONARS_rear, STATUS: Invalid Max or Min value., ACTION: Value Set to default
+	SIG_NAME: SENSOR_SONARS_no_filt_left, STATUS: Invalid Max or Min value., ACTION: Value Set to default
+	SIG_NAME: SENSOR_SONARS_no_filt_middle, STATUS: Invalid Max or Min value., ACTION: Value Set to default
+	SIG_NAME: SENSOR_SONARS_no_filt_right, STATUS: Invalid Max or Min value., ACTION: Value Set to default
+	SIG_NAME: SENSOR_SONARS_no_filt_rear, STATUS: Invalid Max or Min value., ACTION: Value Set to default
+
+MSG_ID: 503 	MSG_TYPE: S 	MSG_NAME: DBC_TEST4
+	SIG_NAME: DBC_TEST4_real_signed1, STATUS: Invalid Max or Min value., ACTION: Value Set to default
+	SIG_NAME: DBC_TEST4_real_overflow, STATUS: Invalid Max or Min value., ACTION: Value Set to default
+BA_DEF_DEF_ " "  : Match not Found in Param List
+BA_DEF_DEF_ " "  : Match not Found in Param List
+BA_DEF_DEF_ " 0;"  : Match not Found in Param List

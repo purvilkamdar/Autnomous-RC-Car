@@ -25,6 +25,7 @@
  */
 #include "tasks.hpp"
 #include "examples/examples.hpp"
+#include "io.hpp"
 
 /**
  * The main() creates tasks or "threads".  See the documentation of scheduler_task class at scheduler_task.hpp
@@ -62,7 +63,7 @@ int main(void)
     const bool run_1Khz = false;
     scheduler_add_task(new periodicSchedulerTask(run_1Khz));
     #endif
-
+  //LE.on(1);
     /* The task for the IR receiver to "learn" IR codes */
     // scheduler_add_task(new remoteTask  (PRIORITY_LOW));
 
