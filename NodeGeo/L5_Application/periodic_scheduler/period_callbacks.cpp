@@ -35,11 +35,14 @@
 #include "periodic_callback.h"
 #include "file_logger.h"
 #include "uart3.hpp"
-#include "gps_Node.h"
 #include "_can_dbc/generated_can.h"
 #include "can.h"
+#include "compass.hpp"
 
-GPS_DATA data_received = {0};
+
+
+
+//GPS_DATA data_received = {0};
 
 /// This is the stack size used for each of the period tasks (1Hz, 10Hz, 100Hz, and 1000Hz)
 const uint32_t PERIOD_TASKS_STACK_SIZE_BYTES = (512 * 4);
@@ -55,8 +58,9 @@ const uint32_t PERIOD_DISPATCHER_TASK_STACK_SIZE_BYTES = (512 * 3);
 /// Called once before the RTOS is started, this is a good place to initialize things once
 bool period_init(void)
 {
-	logger_init(1);
-	serialInit();
+	LE.init();
+	LD.init();
+	uart3_init();
     return true; // Must return true upon success
 }
 
@@ -68,48 +72,14 @@ bool period_reg_tlm(void)
 }
 
 
-/**
- * Below are your periodic functions.
- * The argument 'count' is the number of times each periodic task is called.
- */
-
-/*
- * Available GPS Address Types:
- * GNVTG GNGGA GNGSA GPGSV GLGSV GNGLL GNRMC
- */
-
 void period_1Hz(uint32_t count)
 {
-
+	//uart_rx();
 }
 
 void period_10Hz(uint32_t count)
 {
-	MASTER_HB_t master_can_msg = {0};
-	//GPS_READOUT_t gps_rx_data = {0};
-	GPS_HB_t gps_tx = {0};
-	can_msg_t can_msg;
-
-
-	while(CAN_rx(can1, &can_msg,0))
-	{
-		dbc_msg_hdr_t can_msg_hdr;
-		can_msg_hdr.dlc = can_msg.frame_fields.data_len;
-		can_msg_hdr.mid = can_msg.msg_id;
-
-		//This line is to decode Heartbeat. Have not wrote code to recognize what type of heartbeat.
-		//This code isn't really used yet.
-		dbc_decode_MASTER_HB(&master_can_msg, can_msg.data.bytes, &can_msg_hdr);
-
-		//Checks to see if ID 100 is received. If so, send gps data on the bus.
-		if(can_msg_hdr.mid == 100)
-		{
-			dbc_encode_and_send_GPS_HB(&gps_tx);
-		}
-	}
-
-
-
+	uart_rx();
 }
 
 void period_100Hz(uint32_t count)
