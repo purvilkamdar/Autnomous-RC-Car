@@ -34,15 +34,11 @@
 #include "io.hpp"
 #include "periodic_callback.h"
 #include "file_logger.h"
-#include "uart3.hpp"
 #include "_can_dbc/generated_can.h"
 #include "can.h"
 #include "compass.hpp"
 
 
-
-
-//GPS_DATA data_received = {0};
 
 /// This is the stack size used for each of the period tasks (1Hz, 10Hz, 100Hz, and 1000Hz)
 const uint32_t PERIOD_TASKS_STACK_SIZE_BYTES = (512 * 4);
@@ -74,12 +70,12 @@ bool period_reg_tlm(void)
 
 void period_1Hz(uint32_t count)
 {
-	//uart_rx();
+
 }
 
 void period_10Hz(uint32_t count)
 {
-	uart_rx();
+	get_compass_data();
 }
 
 void period_100Hz(uint32_t count)

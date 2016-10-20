@@ -5,15 +5,15 @@
 #include "singleton_template.hpp"
 
 
-typedef struct compass_data{
+typedef struct compass_data
+{
         float yaw;
-        float pitch;
-        float roll;
-}compass_data_t;
+}
+compass_data_t;
 
 
-void uart_rx(void);
+
 void uart3_init(void);
-
+void get_compass_data(void);
 
 #endif //COMPASS_HPP
