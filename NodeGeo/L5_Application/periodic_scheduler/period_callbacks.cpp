@@ -54,9 +54,8 @@ const uint32_t PERIOD_DISPATCHER_TASK_STACK_SIZE_BYTES = (512 * 3);
 /// Called once before the RTOS is started, this is a good place to initialize things once
 bool period_init(void)
 {
-	LE.init();
-	LD.init();
 	uart3_init();
+	can_init();
     return true; // Must return true upon success
 }
 
@@ -70,6 +69,7 @@ bool period_reg_tlm(void)
 
 void period_1Hz(uint32_t count)
 {
+	canbus_check();
 
 }
 
