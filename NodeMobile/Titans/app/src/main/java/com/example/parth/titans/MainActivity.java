@@ -254,6 +254,7 @@ public class MainActivity extends AppCompatActivity {
     public void onStop() {
         super.onStop();
         btServiceConnection=null;
+        //unbindService(btServiceConnection);
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         AppIndex.AppIndexApi.end(client, getIndexApiAction());
