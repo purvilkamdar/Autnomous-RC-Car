@@ -34,6 +34,7 @@ import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.appindexing.Thing;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.*;
 
 import java.util.List;
 import java.util.Set;
@@ -62,6 +63,7 @@ public class MainActivity extends AppCompatActivity {
     private BluetoothDevice bleChip;
     private BluetoothLeService btLeService;
     private boolean start=false;
+    private ImageButton MapsButton;
 
     private final ServiceConnection btServiceConnection = new ServiceConnection(){
         @Override
@@ -133,6 +135,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        MapsButton=(ImageButton)findViewById(R.id.imageButton);
         btButton=(ImageButton)findViewById(R.id.imageButton3);
         startButton=(ImageButton)findViewById(R.id.imageButton2);
         if(!start){
@@ -208,6 +211,14 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
 
+            }
+        });
+
+        MapsButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent Maps = new Intent(getApplicationContext(),MapsActivity.class);
+                startActivity(Maps);
             }
         });
 
