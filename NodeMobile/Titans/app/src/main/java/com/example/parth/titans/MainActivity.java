@@ -61,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
     private  boolean scanning;
     private BluetoothDevice bleChip;
     private BluetoothLeService btLeService;
+    private boolean start=false;
 
     private final ServiceConnection btServiceConnection = new ServiceConnection(){
         @Override
@@ -134,6 +135,12 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         btButton=(ImageButton)findViewById(R.id.imageButton3);
         startButton=(ImageButton)findViewById(R.id.imageButton2);
+        if(!start){
+            startButton.setColorFilter(Color.RED);
+        }
+        else{
+            startButton.setColorFilter(Color.GREEN);
+        }
         handler=new Handler();
 
         // To check whether device supports BLE or not
@@ -183,10 +190,23 @@ public class MainActivity extends AppCompatActivity {
         startButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(btLeService != null) {
-                    btLeService.writeCustomCharacteristic("BLE START");
-                    Log.i("TITANS:","Write done");
+                if(!start){
+                    if(btLeService != null) {
+                        btLeService.writeCustomCharacteristic(1);
+                        Log.i("TITANS:","Write done");
+                        start=true;
+                        startButton.setColorFilter(Color.GREEN);
+                    }
                 }
+                else{
+                    if(btLeService != null) {
+                        btLeService.writeCustomCharacteristic(1);
+                        Log.i("TITANS:","Write done");
+                        start=false;
+                        startButton.setColorFilter(Color.RED);
+                    }
+                }
+
             }
         });
 
