@@ -10,12 +10,15 @@ import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.net.Uri;
+import android.os.IBinder;
 import android.os.ParcelUuid;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -52,10 +55,33 @@ public class MainActivity extends AppCompatActivity {
     private BluetoothAdapter btAdapter;
     private BluetoothManager btManager;
     private ImageButton btButton;
+    private ImageButton startButton;
     private Handler handler;
     private final int SCAN_PERIOD=1000;
     private  boolean scanning;
     private BluetoothDevice bleChip;
+    private BluetoothLeService btLeService;
+
+    private final ServiceConnection btServiceConnection = new ServiceConnection(){
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            btLeService = ((BluetoothLeService.LocalBinder) service).getService();
+            if (!btLeService.initialize()) {
+                Log.e("TITANS:", "Bluetooth Service not initialized.");
+                finish();
+            }
+            // Automatically connects to the device upon successful start-up initialization.
+            btLeService.connect(bleChip.getAddress());
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            btLeService=null;
+        }
+    };
+
+
+
     // BLE Scanning callback which is called when device is scanning
     private BluetoothAdapter.LeScanCallback mLeScanCallback =
             new BluetoothAdapter.LeScanCallback() {
@@ -70,6 +96,7 @@ public class MainActivity extends AppCompatActivity {
                             if (scanning) {
                                 btAdapter.stopLeScan(mLeScanCallback);
                                 Log.i("TITANS:",bleChip.getName());
+
                                 scanning = false;
                             }
                         }
@@ -105,8 +132,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        btButton=(ImageButton)findViewById(R.id.imageButton);
-
+        btButton=(ImageButton)findViewById(R.id.imageButton3);
+        startButton=(ImageButton)findViewById(R.id.imageButton2);
         handler=new Handler();
 
         // To check whether device supports BLE or not
@@ -143,6 +170,26 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         scanLeDevice(true);
+
+
+        btButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent gattServiceIntent = new Intent(v.getContext(), BluetoothLeService.class);
+                bindService(gattServiceIntent, btServiceConnection, BIND_AUTO_CREATE);
+                btButton.setColorFilter(Color.GREEN);
+            }
+        });
+        startButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(btLeService != null) {
+                    btLeService.writeCustomCharacteristic(1);
+                    Log.i("TITANS:","Write done");
+                }
+            }
+        });
+
     }
 
     /**
