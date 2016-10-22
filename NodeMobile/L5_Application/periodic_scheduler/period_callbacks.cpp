@@ -34,7 +34,8 @@
 #include "io.hpp"
 #include "periodic_callback.h"
 #include "uart2.hpp"
-
+#include "can.h"
+#include "_can_dbc/generated_can.h"
 /// This is the stack size used for each of the period tasks (1Hz, 10Hz, 100Hz, and 1000Hz)
 const uint32_t PERIOD_TASKS_STACK_SIZE_BYTES = (512 * 4);
 
@@ -46,10 +47,39 @@ const uint32_t PERIOD_TASKS_STACK_SIZE_BYTES = (512 * 4);
  */
 const uint32_t PERIOD_DISPATCHER_TASK_STACK_SIZE_BYTES = (512 * 3);
 Uart2 &u2 = Uart2::getInstance();
-char msg[1000];
+char msg[10];
+bool start=0;
+bool stop=0;
+bool dbc_app_send_can_msg(uint32_t mid, uint8_t dlc, uint8_t bytes[8])
+{
+    can_msg_t can_msg = { 0 };
+    can_msg.msg_id                = mid;
+    can_msg.frame_fields.data_len = dlc;
+    memcpy(can_msg.data.bytes, bytes, dlc);
+
+    return CAN_tx(can1, &can_msg, 0);
+}
+void busoff(uint32_t arg)
+{
+LE.on(3);
+if(CAN_is_bus_off(can1))
+{
+	CAN_reset_bus(can1);
+	LE.off(3);
+}
+}
+void overrun(uint32_t arg)
+{
+LE.on(4);
+}
+
 /// Called once before the RTOS is started, this is a good place to initialize things once
 bool period_init(void) {
+	can_void_func_t busOff=busoff;
+	can_void_func_t overr=overrun;
 	u2.init(115200, 10, 10);
+	CAN_init(can1,100,10,10,busOff,overr);
+	CAN_reset_bus(can1);
 	return true; // Must return true upon success
 }
 
@@ -69,6 +99,17 @@ void period_1Hz(uint32_t count) {
 	}
 
 void period_10Hz(uint32_t count) {
+	APP_START_STOP_t start_cmd = { 0 };
+	if(start==1){
+		start_cmd.APP_START_STOP_cmd=1;
+		start=0;
+	}
+	else if(stop==1){
+		start_cmd.APP_START_STOP_cmd=0;
+		stop=0;
+	}
+	// This function will encode the CAN data bytes, and send the CAN msg using dbc_app_send_can_msg()
+	dbc_encode_and_send_APP_START_STOP(&start_cmd);
 	//LE.toggle(2);
 }
 
@@ -77,12 +118,16 @@ void period_100Hz(uint32_t count) {
 		if (u2.getChar(msg, 0)) {
 				LE.on(1);
 
-				puts(msg);
-				LD.setNumber(rand()%99);
-			}
+				printf("\nReceived:%d",msg[0]);
+				LD.setNumber(msg[0]);
 
-
-
+				if(msg[0]==1){
+					start=1;
+				}
+				if(msg[0]==0){
+					stop=1;
+				}
+		}
 	//LE.toggle(3);
 }
 
