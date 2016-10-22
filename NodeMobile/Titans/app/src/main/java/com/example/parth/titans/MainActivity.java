@@ -184,7 +184,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if(btLeService != null) {
-                    btLeService.writeCustomCharacteristic(1);
+                    btLeService.writeCustomCharacteristic("BLE START");
                     Log.i("TITANS:","Write done");
                 }
             }

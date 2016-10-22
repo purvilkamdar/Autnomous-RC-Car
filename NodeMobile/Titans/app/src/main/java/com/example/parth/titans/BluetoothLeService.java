@@ -316,7 +316,7 @@ public class BluetoothLeService extends Service {
         }
     }
 
-    public void writeCustomCharacteristic(int value) {
+    public void writeCustomCharacteristic(String value) {
         if (mBluetoothAdapter == null || mBluetoothGatt == null) {
             Log.w(TAG, "BluetoothAdapter not initialized");
             return;
@@ -330,7 +330,8 @@ public class BluetoothLeService extends Service {
         /*get the read characteristic from the service*/
         BluetoothGattCharacteristic mWriteCharacteristic = mCustomService.getCharacteristic(UUID.fromString("0000ffe1-0000-1000-8000-00805f9b34fb"));
         if(mWriteCharacteristic!=null) {
-            mWriteCharacteristic.setValue(value, android.bluetooth.BluetoothGattCharacteristic.FORMAT_UINT8, 0);
+            //mWriteCharacteristic.setValue(value, android.bluetooth.BluetoothGattCharacteristic.FORMAT_UINT8, 0);
+            mWriteCharacteristic.setValue(value);
             if(mBluetoothGatt.writeCharacteristic(mWriteCharacteristic) == false){
                 Log.w(TAG, "Failed to write characteristic");
             }
