@@ -65,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean start=false;
     private ImageButton MapsButton;
 
-    private final ServiceConnection btServiceConnection = new ServiceConnection(){
+    private ServiceConnection btServiceConnection = new ServiceConnection(){
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             btLeService = ((BluetoothLeService.LocalBinder) service).getService();
@@ -253,7 +253,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onStop() {
         super.onStop();
-        unbindService(btServiceConnection);
+        btServiceConnection=null;
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         AppIndex.AppIndexApi.end(client, getIndexApiAction());
