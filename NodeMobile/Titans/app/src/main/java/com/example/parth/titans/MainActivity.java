@@ -184,6 +184,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Intent gattServiceIntent = new Intent(v.getContext(), BluetoothLeService.class);
                 bindService(gattServiceIntent, btServiceConnection, BIND_AUTO_CREATE);
+
                 btButton.setColorFilter(Color.GREEN);
             }
         });
@@ -200,7 +201,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 else{
                     if(btLeService != null) {
-                        btLeService.writeCustomCharacteristic(1);
+                        btLeService.writeCustomCharacteristic(0);
                         Log.i("TITANS:","Write done");
                         start=false;
                         startButton.setColorFilter(Color.RED);
@@ -241,7 +242,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onStop() {
         super.onStop();
-
+        unbindService(btServiceConnection);
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         AppIndex.AppIndexApi.end(client, getIndexApiAction());
