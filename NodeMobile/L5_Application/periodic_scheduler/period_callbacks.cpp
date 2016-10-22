@@ -27,12 +27,13 @@
  * For example, the 1000Hz take slot runs periodically every 1ms, and whatever you
  * do must be completed within 1ms.  Running over the time slot will reset the system.
  */
-
+#include <stdio.h>
 #include <stdint.h>
+#include <string.h>
+#include <stdlib.h>
 #include "io.hpp"
 #include "periodic_callback.h"
-
-
+#include "uart2.hpp"
 
 /// This is the stack size used for each of the period tasks (1Hz, 10Hz, 100Hz, and 1000Hz)
 const uint32_t PERIOD_TASKS_STACK_SIZE_BYTES = (512 * 4);
@@ -44,44 +45,49 @@ const uint32_t PERIOD_TASKS_STACK_SIZE_BYTES = (512 * 4);
  * printf inside these functions, you need about 1500 bytes minimum
  */
 const uint32_t PERIOD_DISPATCHER_TASK_STACK_SIZE_BYTES = (512 * 3);
-
+Uart2 &u2 = Uart2::getInstance();
+char msg[1000];
 /// Called once before the RTOS is started, this is a good place to initialize things once
-bool period_init(void)
-{
-    return true; // Must return true upon success
+bool period_init(void) {
+	u2.init(115200, 10, 10);
+	return true; // Must return true upon success
 }
 
 /// Register any telemetry variables
-bool period_reg_tlm(void)
-{
-    // Make sure "SYS_CFG_ENABLE_TLM" is enabled at sys_config.h to use Telemetry
-    return true; // Must return true upon success
+bool period_reg_tlm(void) {
+	// Make sure "SYS_CFG_ENABLE_TLM" is enabled at sys_config.h to use Telemetry
+	return true; // Must return true upon success
 }
-
 
 /**
  * Below are your periodic functions.
  * The argument 'count' is the number of times each periodic task is called.
  */
 
-void period_1Hz(uint32_t count)
-{
-    LE.toggle(1);
+void period_1Hz(uint32_t count) {
+	//LE.toggle(1);
+	}
+
+void period_10Hz(uint32_t count) {
+	//LE.toggle(2);
 }
 
-void period_10Hz(uint32_t count)
-{
-    LE.toggle(2);
-}
+void period_100Hz(uint32_t count) {
+	LE.off(1);
+		if (u2.getChar(msg, 0)) {
+				LE.on(1);
 
-void period_100Hz(uint32_t count)
-{
-    LE.toggle(3);
+				puts(msg);
+				LD.setNumber(rand()%99);
+			}
+
+
+
+	//LE.toggle(3);
 }
 
 // 1Khz (1ms) is only run if Periodic Dispatcher was configured to run it at main():
 // scheduler_add_task(new periodicSchedulerTask(run_1Khz = true));
-void period_1000Hz(uint32_t count)
-{
-    LE.toggle(4);
+void period_1000Hz(uint32_t count) {
+	//LE.toggle(4);
 }
