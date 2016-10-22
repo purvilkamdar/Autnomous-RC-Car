@@ -10,7 +10,7 @@ This parses the Vector DBC file to generate code to marshal and unmarshal DBC de
 
 Use Python (I used Python 3.5)
 python dbc_parse.py -i 243.dbc -s GPS
-Generate all code: dbc_parse.py -i 243.dbc -s DRIVER -a all > generated.h
+Generate all code: dbc_parse.py -i 243.dbc -s Driver -a all > generated.h
 """
 
 LINE_BEG = '%'

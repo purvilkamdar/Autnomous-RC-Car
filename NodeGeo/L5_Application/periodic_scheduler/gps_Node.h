@@ -26,6 +26,7 @@ typedef struct{
 }GPS_DATA;
 
 void serialInit(void);
+void check_reset_canbus(void);
 
 void readGPS(gps_name addr, GPS_DATA *data_r);
 /*----- GPS Address and their Types of Data-----*/
