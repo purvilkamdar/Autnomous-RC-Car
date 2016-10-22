@@ -78,7 +78,9 @@ BO_ 64 GPS_HB: 1 GPS
 BO_ 80 APP_HB: 1 APP 
  SG_ APP_HEARTBEAT_cmd : 0|8@1+ (1,0) [0|0] "" MASTER 
  
-
+BO_ 1 APP_START_STOP: 1 APP
+ SG_ APP_START_STOP_cmd : 0|8@1+ (1,0) [0|0] "" MASTER
+ 
 BO_ 200 SENSOR_SONARS: 8 SENSOR
  SG_ SENSOR_SONARS_mux M : 0|4@1+ (1,0) [0|0] "" DRIVER,IO
  SG_ SENSOR_SONARS_err_count : 4|12@1+ (1,0) [0|0] "" DRIVER,IO
@@ -101,6 +103,7 @@ BO_ 503 DBC_TEST4: 8 IO
 CM_ BU_ DRIVER "The driver controller driving the car";
 CM_ BU_ MOTOR "The motor controller of the car";
 CM_ BU_ SENSOR "The sensor controller of the car";
+CM_ BU_ APP "The communication bridge controller of car";
 CM_ BO_ 100 "Sync message used to synchronize the controllers";
 
 BA_DEF_ "BusType" STRING ;
