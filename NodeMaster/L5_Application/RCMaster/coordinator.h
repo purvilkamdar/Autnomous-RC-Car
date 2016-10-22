@@ -15,19 +15,22 @@
 #include "MobileControl.h"
 //#include "singleton_template.hpp"
 
-#define MOTOR_MID 48
-#define SENSORS_MID 16
+#define MOTOR_STATUS 400
+#define SENSOR_DATA 16
+#define GPS_Data 65
+#define APP_START_STOP 1
 
 class coordinator {    //: public SingletonTemplate<coordinator> {
 public:
 
 	virtual ~coordinator();
 	void on1HzHearbeat();
-	bool sendHeartbeat();
+	bool sendHeartbeat(int motor_cmd);
 	bool getNodeStatus();
 	void onStatusReceived();
 	void processAndSendOrder();
 	coordinator();
+	int motor_cmd;
 private:
 	MotorControl *itsMotorNode;
 	SensorsControl *itsSensorNode;

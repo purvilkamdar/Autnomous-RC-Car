@@ -58,7 +58,7 @@ coordinator* NodeCoordinator = new coordinator();
 }*/
 bool period_init(void)
 {
-	CAN_init(can1,100,3,3,NULL,NULL);
+	CAN_init(can1,100,10,10,NULL,NULL);
 	CAN_bypass_filter_accept_all_msgs();
 	CAN_reset_bus(can1);
     return true; // Must return true upon success
@@ -87,17 +87,12 @@ bool period_reg_tlm(void)
 }*/
 void period_1Hz(uint32_t count)
 {
-	static int mic_ctr = 0;
- //addng comment
-	if (mic_ctr++ < 5){
 	if(NodeCoordinator->getNodeStatus())
 	{
 		//printf("Msg Received");
 		NodeCoordinator->onStatusReceived();
 	}
 
-	printf("Hello %d\n", mic_ctr);
-	}
     LE.toggle(1);
 }
 
