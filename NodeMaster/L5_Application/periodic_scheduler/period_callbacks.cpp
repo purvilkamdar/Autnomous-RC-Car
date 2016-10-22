@@ -87,21 +87,17 @@ bool period_reg_tlm(void)
 }*/
 void period_1Hz(uint32_t count)
 {
+	static int mic_ctr = 0;
  //addng comment
+	if (mic_ctr++ < 5){
 	if(NodeCoordinator->getNodeStatus())
 	{
 		//printf("Msg Received");
 		NodeCoordinator->onStatusReceived();
 	}
-	/*MASTER_HB_t master_cmd ={0};
-	master_cmd.MASTER_HEARTBEAT_cmd=3;
 
-	    // This function will encode the CAN data bytes, and send the CAN msg using dbc_app_send_can_msg()
-	dbc_encode_and_send_MASTER_HB(&master_cmd);
-
-
-	printf("Hello\n");*/
-
+	printf("Hello %d\n", mic_ctr);
+	}
     LE.toggle(1);
 }
 

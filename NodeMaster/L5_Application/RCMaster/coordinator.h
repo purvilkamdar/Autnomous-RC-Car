@@ -15,6 +15,9 @@
 #include "MobileControl.h"
 //#include "singleton_template.hpp"
 
+#define MOTOR_MID 48
+#define SENSORS_MID 16
+
 class coordinator {    //: public SingletonTemplate<coordinator> {
 public:
 

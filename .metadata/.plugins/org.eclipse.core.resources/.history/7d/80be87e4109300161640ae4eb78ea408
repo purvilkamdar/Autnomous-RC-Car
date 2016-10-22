@@ -1,0 +1,32 @@
+/*
+ * coordinator.h
+ *
+ *  Created on: Oct 10, 2016
+ *      Author: home
+ */
+
+#ifndef L5_APPLICATION_RCMASTER_COORDINATOR_H_
+#define L5_APPLICATION_RCMASTER_COORDINATOR_H_
+
+#include "NodeControl.h"
+
+class coordinator {
+public:
+
+	virtual ~coordinator();
+	void on1HzHearbeat();
+	bool getNodeStatus();
+	void onStatusReceived();
+	void processAndSendOrder();
+	static coordinator*  getInstance();
+private:
+	NodeControl *itsMotorNode;
+	NodeControl *itsSensorNode;
+	NodeControl *itsGeoNode;
+	NodeControl *itsMobileNode;
+	static coordinator* instance;
+	coordinator();
+
+};
+
+#endif /* L5_APPLICATION_RCMASTER_COORDINATOR_H_ */

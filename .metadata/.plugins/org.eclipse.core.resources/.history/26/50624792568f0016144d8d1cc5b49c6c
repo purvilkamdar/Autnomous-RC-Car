@@ -1,0 +1,17 @@
+/*
+ * NodeControl.h
+ *
+ *  Created on: Oct 10, 2016
+ *      Author: home
+ */
+
+#ifndef L5_APPLICATION_RCMASTER_NODECONTROL_H_
+#define L5_APPLICATION_RCMASTER_NODECONTROL_H_
+
+class NodeControl {
+public:
+	NodeControl();
+	virtual ~NodeControl();
+};
+
+#endif /* L5_APPLICATION_RCMASTER_NODECONTROL_H_ */
