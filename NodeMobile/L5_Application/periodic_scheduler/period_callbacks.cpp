@@ -79,6 +79,11 @@ bool period_init(void) {
 	can_void_func_t overr=overrun;
 	u2.init(115200, 10, 10);
 	CAN_init(can1,100,10,10,busOff,overr);
+	//CAN message Filter
+	          const can_std_id_t slist[]  = { CAN_gen_sid(can1, 0x020),   // Acknowledgment from the nodes that received sensor reading
+	                                          CAN_gen_sid(can1, 0x021) }; // Only 1 ID is expected, hence small range
+
+	         CAN_setup_filter(slist, 2, NULL, 0, NULL, 0, NULL, 0);
 	CAN_reset_bus(can1);
 	return true; // Must return true upon success
 }
@@ -99,17 +104,36 @@ void period_1Hz(uint32_t count) {
 	}
 
 void period_10Hz(uint32_t count) {
+	MASTER_HB_t heartbeat={0};
+	can_msg_t can_msg;
 	APP_START_STOP_t start_cmd = { 0 };
 	if(start==1){
 		start_cmd.APP_START_STOP_cmd=1;
-		start=0;
+
 	}
 	else if(stop==1){
 		start_cmd.APP_START_STOP_cmd=0;
-		stop=0;
+
 	}
+
+	//dbc_encode_and_send_APP_START_STOP(&start_cmd);
+
+	while(CAN_rx(can1, &can_msg,0))
+	    {
+	        dbc_msg_hdr_t can_msg_hdr;
+	        can_msg_hdr.dlc = can_msg.frame_fields.data_len;
+	        can_msg_hdr.mid = can_msg.msg_id;
+	        dbc_decode_MASTER_HB(&heartbeat, can_msg.data.bytes, &can_msg_hdr);
+	        //Checks to see if msg ID matches Mater's HB ID. If so, send START_STOP.
+	        if(can_msg_hdr.mid == 0x20)
+	        {
+	        	dbc_encode_and_send_APP_START_STOP(&start_cmd);
+	        }
+
+
+	    }
 	// This function will encode the CAN data bytes, and send the CAN msg using dbc_app_send_can_msg()
-	dbc_encode_and_send_APP_START_STOP(&start_cmd);
+
 	//LE.toggle(2);
 }
 
@@ -123,9 +147,11 @@ void period_100Hz(uint32_t count) {
 
 				if(msg[0]==1){
 					start=1;
+					stop=0;
 				}
 				if(msg[0]==0){
 					stop=1;
+					start=0;
 				}
 		}
 	//LE.toggle(3);
