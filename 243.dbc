@@ -38,25 +38,25 @@ BO_ 1 APP_START_STOP: 1 APP
  SG_ APP_START_STOP_cmd : 0|8@1+ (1,0) [0|0] "COMMAND" MASTER
  
 BO_ 16 SENSOR_DATA: 3 SENSOR 
- SG_ SENSOR_left_sensor : 0|8@1+ (1,0) [0|0] "Inches" MASTER 
- SG_ SENSOR_middle_sensor : 8|8@1+ (1,0) [0|0] "Inches" MASTER 
- SG_ SENSOR_right_sensor : 16|8@1+ (1,0) [0|0] "Inches" MASTER 
+ SG_ SENSOR_left_sensor : 0|8@1+ (1,0) [0|0] "Inches" MASTER,APP 
+ SG_ SENSOR_middle_sensor : 8|8@1+ (1,0) [0|0] "Inches" MASTER,APP 
+ SG_ SENSOR_right_sensor : 16|8@1+ (1,0) [0|0] "Inches" MASTER,APP 
 
 BO_ 32 MASTER_HB: 2 MASTER 
  SG_ MASTER_SPEED_cmd : 0|8@1+ (1,0) [0|0] "" SENSOR,MOTOR,GPS,APP
  SG_ MASTER_STEER_cmd : 8|8@1+ (1,0) [0|0] "" SENSOR,MOTOR,GPS,APP
  
 BO_ 65 GPS_Data: 8 GPS
- SG_ GPS_READOUT_valid_bit : 0|1@1+ (1,0) [0|1] "" MASTER,MOTOR
- SG_ GPS_READOUT_read_counter : 1|11@1+ (1,0) [0|2000] "" MASTER,MOTOR
- SG_ GPS_READOUT_latitude : 12|26@1+ (0.000001,0) [0|0] "" MASTER,MOTOR
- SG_ GPS_READOUT_longitude : 38|26@1- (0.000001,0) [0|0] "" MASTER,MOTOR
+ SG_ GPS_READOUT_valid_bit : 0|1@1+ (1,0) [0|1] "" MASTER,MOTOR,APP,MOTOR
+ SG_ GPS_READOUT_read_counter : 1|11@1+ (1,0) [0|2000] "" MASTER,MOTOR,APP
+ SG_ GPS_READOUT_latitude : 12|26@1+ (0.000001,0) [0|0] "" MASTER,MOTOR,APP
+ SG_ GPS_READOUT_longitude : 38|26@1- (0.000001,0) [0|0] "" MASTER,MOTOR,APP
 
 BO_ 66 COMPASS_Data: 2 GPS
- SG_ COMPASS_Heading : 0|16@1+ (1,0) [0|359] "Degree" MASTER 
+ SG_ COMPASS_Heading : 0|16@1+ (1,0) [0|359] "Degree" MASTER,APP,MOTOR 
  
 BO_ 48 MOTOR_STATUS: 3 MOTOR
- SG_ MOTOR_STATUS_speed_mph : 0|16@1+ (0.001,0) [0|0] "mph" MASTER
+ SG_ MOTOR_STATUS_speed_mph : 0|16@1+ (0.001,0) [0|0] "mph" MASTER,APP,MOTOR
  
 
 CM_ BU_ MASTER "The master controller driving the car";
