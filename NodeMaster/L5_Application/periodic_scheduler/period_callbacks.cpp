@@ -87,25 +87,30 @@ bool period_reg_tlm(void)
 }*/
 void period_1Hz(uint32_t count)
 {
-	if(NodeCoordinator->getNodeStatus())
-	{
-		//printf("Msg Received");
-		NodeCoordinator->onStatusReceived();
-	}
 
     LE.toggle(1);
+
 }
 
 void period_10Hz(uint32_t count)
 {
+	if(NodeCoordinator->getNodeStatus())
+		{
+			//printf("Msg Received");
+			NodeCoordinator->onStatusReceived();
+		}
+
 	if(CAN_is_bus_off(can1))
-			{
-				CAN_reset_bus(can1);
-			}
+					{
+						CAN_reset_bus(can1);
+
+					}
+
 }
 
 void period_100Hz(uint32_t count)
 {
+
     LE.toggle(3);
 }
 
