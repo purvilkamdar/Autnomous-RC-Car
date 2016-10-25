@@ -20,17 +20,20 @@
 #define GPS_Data 65
 #define APP_START_STOP 1
 
+#define MIN_DISTANCE_INCHES 12
+
 class coordinator {    //: public SingletonTemplate<coordinator> {
 public:
 
 	virtual ~coordinator();
 	void on1HzHearbeat();
-	bool sendHeartbeat(int motor_cmd);
+	bool sendHeartbeat(int motor_cmd,int steer_cmd);
 	bool getNodeStatus();
 	void onStatusReceived();
 	void processAndSendOrder();
 	coordinator();
 	int motor_cmd;
+	int steer_cmd;
 private:
 	MotorControl *itsMotorNode;
 	SensorsControl *itsSensorNode;

@@ -47,9 +47,10 @@ bool dbc_app_send_can_msg(uint32_t mid, uint8_t dlc, uint8_t bytes[8])
 
     return CAN_tx(can1, &can_msg, 0);
 }
-bool coordinator::sendHeartbeat(int motor_cmd){
+bool coordinator::sendHeartbeat(int motor_cmd,int steer_cmd){
 	MASTER_HB_t master_cmd ={0};
 		master_cmd.MASTER_SPEED_cmd = motor_cmd;
+		master_cmd.MASTER_STEER_cmd = steer_cmd;
 
 			    // This function will encode the CAN data bytes, and send the CAN msg using dbc_app_send_can_msg()
 		dbc_encode_and_send_MASTER_HB(&master_cmd);
@@ -58,8 +59,9 @@ return true;
 bool coordinator::getNodeStatus(){
 
 	bool status_received = false;
-    if(sendHeartbeat(motor_cmd))
-	printf("Hearbeat sent!\n");
+	sendHeartbeat(motor_cmd,steer_cmd);
+    //if(sendHeartbeat(motor_cmd,steer_cmd))
+	//printf("Hearbeat sent!\n");
     can_msg_t can_msg;
     uint32_t node_status_counter=0;
     while (CAN_rx(can1, &can_msg, 0))
@@ -76,23 +78,30 @@ bool coordinator::getNodeStatus(){
              case MOTOR_STATUS:
                  dbc_decode_MOTOR_STATUS(&motor_can_msg, can_msg.data.bytes, &can_msg_hdr);
                 // printf("Received status from Motor!:\n");
-                 printf("Motor Data : %d\n",motor_can_msg.MOTOR_STATUS_speed_kph);
+               //  printf("Motor Data : %d\n",motor_can_msg.MOTOR_STATUS_speed_kph);
         	   break;
              case SENSOR_DATA:
                  dbc_decode_SENSOR_DATA(&sensor_can_msg, can_msg.data.bytes, &can_msg_hdr);
-                 printf("Sensor left : %d\n",sensor_can_msg.SENSOR_left_sensor);
-                 printf("Sensor right : %d\n",sensor_can_msg.SENSOR_right_sensor);
-                 printf("Sensor middle : %d\n",sensor_can_msg.SENSOR_middle_sensor);
+                 if(sensor_can_msg.SENSOR_left_sensor  < MIN_DISTANCE_INCHES){
+                	 steer_cmd = right_full;
+                 } else if (sensor_can_msg.SENSOR_right_sensor  < MIN_DISTANCE_INCHES) {
+                	 steer_cmd = left_full;
+                 } else {
+                	 steer_cmd = center;
+                 }
+//                 printf("Sensor left : %d\n",sensor_can_msg.SENSOR_left_sensor);
+//                 printf("Sensor right : %d\n",sensor_can_msg.SENSOR_right_sensor);
+//                 printf("Sensor middle : %d\n",sensor_can_msg.SENSOR_middle_sensor);
 
               break;
              case GPS_Data:
                  dbc_decode_GPS_Data(&gps_can_msg, can_msg.data.bytes, &can_msg_hdr);
-                 printf("GPS_READOUT_latitude : %d\n",gps_can_msg.GPS_READOUT_latitude);
-                 printf("GPS_READOUT_longitude : %d\n",gps_can_msg.GPS_READOUT_longitude);
+//                 printf("GPS_READOUT_latitude : %d\n",gps_can_msg.GPS_READOUT_latitude);
+//                 printf("GPS_READOUT_longitude : %d\n",gps_can_msg.GPS_READOUT_longitude);
             	 break;
              case APP_START_STOP:
                  dbc_decode_APP_START_STOP(&app_can_msg, can_msg.data.bytes, &can_msg_hdr);
-                 printf("APP_START_STOP_cmd : %d\n",app_can_msg.APP_START_STOP_cmd);
+                // printf("APP_START_STOP_cmd : %d\n",app_can_msg.APP_START_STOP_cmd);
 
                  motor_cmd = app_can_msg.APP_START_STOP_cmd;
 
