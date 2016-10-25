@@ -10,9 +10,11 @@ import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -21,13 +23,16 @@ import android.net.Uri;
 import android.os.IBinder;
 import android.os.ParcelUuid;
 import android.support.annotation.Nullable;
+import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.appindexing.Action;
@@ -35,6 +40,14 @@ import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.appindexing.Thing;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.*;
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.List;
 import java.util.Set;
@@ -42,28 +55,65 @@ import java.util.UUID;
 import android.os.Handler;
 
 
-public class MainActivity extends AppCompatActivity {
-     /**
+public class MainActivity extends FragmentActivity implements OnMapReadyCallback {
+    /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
      */
     private GoogleApiClient client;
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
+    // ATTENTION: This was auto-generated to implement the App Indexing API.
+    // See https://g.co/AppIndexing/AndroidStudio for more information.
 
 
     // Variable declarations
     private BluetoothAdapter btAdapter;
     private BluetoothManager btManager;
-    private ImageButton btButton;
-    private ImageButton startButton;
+
     private Handler handler;
     private final int SCAN_PERIOD=1000;
     private  boolean scanning;
     private BluetoothDevice bleChip;
     private BluetoothLeService btLeService;
-    private boolean start=false;
-    private ImageButton MapsButton;
+    private GoogleMap mMap;
+    private TextView connectionState;
+    private Button startButton;
+    public void onMapReady(GoogleMap googleMap) {
+        mMap = googleMap;
+
+        // Add a marker in Student Union and move the camera
+        LatLng SU = new LatLng(37.336022, -121.881344);
+        mMap.addMarker(new MarkerOptions().position(SU).title("Starting position"));
+        CameraUpdate location = CameraUpdateFactory.newLatLngZoom(SU,17);
+        mMap.animateCamera(location);
+
+        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener(){
+            @Override
+            public void onMapClick(LatLng latLng) {
+                mMap.addMarker(new MarkerOptions().position(latLng));
+            }
+
+        });
+
+
+    }
+
+    private final BroadcastReceiver mGattUpdateReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            final String action = intent.getAction();
+            if (BluetoothLeService.ACTION_GATT_CONNECTED.equals(action)) {
+                Log.i("TITANS","Connected");
+                connectionState.setText("Connected");
+                invalidateOptionsMenu();
+            } else if (BluetoothLeService.ACTION_GATT_DISCONNECTED.equals(action)) {
+                connectionState.setText("Not Connected");
+                scanLeDevice(true);
+                invalidateOptionsMenu();
+
+            }
+        }
+    };
+
 
     private ServiceConnection btServiceConnection = new ServiceConnection(){
         @Override
@@ -96,12 +146,14 @@ public class MainActivity extends AppCompatActivity {
                         public void run() {
                             bleChip=device;
                             if(bleChip.getAddress().equalsIgnoreCase("00:0E:0B:0B:3E:28"))
-                            if (scanning) {
-                                btAdapter.stopLeScan(mLeScanCallback);
-                                Log.i("TITANS:",bleChip.getName());
+                                if (scanning) {
+                                    btAdapter.stopLeScan(mLeScanCallback);
+                                    Log.i("TITANS:",bleChip.getName());
+                                    Intent gattServiceIntent = new Intent(getApplicationContext(), BluetoothLeService.class);
+                                    bindService(gattServiceIntent, btServiceConnection, BIND_AUTO_CREATE);
 
-                                scanning = false;
-                            }
+                                    scanning = false;
+                                }
                         }
                     });
                 }
@@ -135,15 +187,11 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        MapsButton=(ImageButton)findViewById(R.id.imageButton);
-        btButton=(ImageButton)findViewById(R.id.imageButton3);
-        startButton=(ImageButton)findViewById(R.id.imageButton2);
-        if(!start){
-            startButton.setColorFilter(Color.RED);
-        }
-        else{
-            startButton.setColorFilter(Color.GREEN);
-        }
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+        connectionState=(TextView)findViewById(R.id.textView7);
+        startButton=(Button)findViewById(R.id.button4);
         handler=new Handler();
 
         // To check whether device supports BLE or not
@@ -173,6 +221,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
         if (!btAdapter.isEnabled()) {
             if (!btAdapter.isEnabled()) {
                 Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
@@ -182,46 +231,43 @@ public class MainActivity extends AppCompatActivity {
         scanLeDevice(true);
 
 
-        btButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent gattServiceIntent = new Intent(v.getContext(), BluetoothLeService.class);
-                bindService(gattServiceIntent, btServiceConnection, BIND_AUTO_CREATE);
-
-                btButton.setColorFilter(Color.GREEN);
-            }
-        });
         startButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(!start){
+                if(startButton.getText().toString().equalsIgnoreCase("START")){
                     if(btLeService != null) {
                         btLeService.writeCustomCharacteristic(1);
                         Log.i("TITANS:","Write done");
-                        start=true;
-                        startButton.setColorFilter(Color.GREEN);
+                        startButton.setText("STOP");
                     }
                 }
                 else{
                     if(btLeService != null) {
                         btLeService.writeCustomCharacteristic(0);
                         Log.i("TITANS:","Write done");
-                        start=false;
-                        startButton.setColorFilter(Color.RED);
+                        startButton.setText("START");
                     }
                 }
 
             }
         });
 
-        MapsButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent Maps = new Intent(getApplicationContext(),MapsActivity.class);
-                startActivity(Maps);
-            }
-        });
 
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(mGattUpdateReceiver);
+    }
+
+    private static IntentFilter makeGattUpdateIntentFilter() {
+        final IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(BluetoothLeService.ACTION_GATT_CONNECTED);
+        intentFilter.addAction(BluetoothLeService.ACTION_GATT_DISCONNECTED);
+        intentFilter.addAction(BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED);
+        intentFilter.addAction(BluetoothLeService.ACTION_DATA_AVAILABLE);
+        return intentFilter;
     }
 
     /**
@@ -254,12 +300,12 @@ public class MainActivity extends AppCompatActivity {
     public void onStop() {
         super.onStop();
         //btServiceConnection=null;
-        //unbindService(btServiceConnection);
+        unbindService(btServiceConnection);
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         AppIndex.AppIndexApi.end(client, getIndexApiAction());
         client.disconnect();
     }
-    
+
 
 }
