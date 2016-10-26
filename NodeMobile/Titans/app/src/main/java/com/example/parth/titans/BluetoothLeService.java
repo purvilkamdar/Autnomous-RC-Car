@@ -48,9 +48,6 @@ public class BluetoothLeService extends Service {
             "com.example.bluetooth.le.EXTRA_DATA";
 
 
-
-    // Implements callback methods for GATT events that the app cares about.  For example,
-    // connection change and services discovered.
     private final BluetoothGattCallback mGattCallback = new BluetoothGattCallback() {
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
@@ -59,7 +56,7 @@ public class BluetoothLeService extends Service {
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 intentAction = ACTION_GATT_CONNECTED;
                 mConnectionState = STATE_CONNECTED;
-                //broadcastUpdate(intentAction);
+                broadcastUpdate(intentAction);
                 Log.i(TAG, "Connected to GATT server.");
                 // Attempts to discover services after successful connection.
                 Log.i(TAG, "Attempting to start service discovery:" +
@@ -69,7 +66,7 @@ public class BluetoothLeService extends Service {
                 intentAction = ACTION_GATT_DISCONNECTED;
                 mConnectionState = STATE_DISCONNECTED;
                 Log.i(TAG, "Disconnected from GATT server.");
-                //broadcastUpdate(intentAction);
+                broadcastUpdate(intentAction);
             }
         }
 
@@ -101,10 +98,10 @@ public class BluetoothLeService extends Service {
         }
     };
 
-    /*private void broadcastUpdate(final String action) {
+    private void broadcastUpdate(final String action) {
         final Intent intent = new Intent(action);
         sendBroadcast(intent);
-    }*/
+    }
 
     /*private void broadcastUpdate(final String action,
                                  final BluetoothGattCharacteristic characteristic) {
