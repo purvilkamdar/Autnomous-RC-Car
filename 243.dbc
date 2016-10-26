@@ -66,19 +66,29 @@ BO_ 400 MOTOR_STATUS: 3 MOTOR
 BO_ 32 MASTER_HB: 1 MASTER 
  SG_ MASTER_HEARTBEAT_cmd : 0|8@1+ (1,0) [0|0] "" SENSOR,MOTOR,GPS,APP
  
-BO_ 16 SENSOR_HB: 1 SENSOR 
- SG_ SENSOR_HEARTBEAT_cmd : 0|8@1+ (1,0) [0|0] "" MASTER
+BO_ 16 SENSOR_DATA: 3 SENSOR 
+ SG_ SENSOR_left_sensor : 0|8@1+ (1,0) [0|0] "" MASTER 
+ SG_ SENSOR_middle_sensor : 8|8@1+ (1,0) [0|0] "" MASTER 
+ SG_ SENSOR_right_sensor : 16|8@1+ (1,0) [0|0] "" MASTER 
 
 BO_ 48 MOTOR_HB: 1 MOTOR 
  SG_ MOTOR_HEARTBEAT_cmd : 0|8@1+ (1,0) [0|0] "" MASTER
  
-BO_ 64 GPS_HB: 1 GPS 
- SG_ GPS_HEARTBEAT_cmd : 0|8@1+ (1,0) [0|0] "" MASTER
+BO_ 65 GPS_Data: 8 GPS
+ SG_ GPS_READOUT_valid_bit : 0|1@1+ (1,0) [0|1] "" MASTER,MOTOR
+ SG_ GPS_READOUT_read_counter : 1|11@1+ (1,0) [0|2000] "" MASTER,MOTOR
+ SG_ GPS_READOUT_latitude : 12|26@1+ (0.000001,0) [0|0] "" MASTER,MOTOR
+ SG_ GPS_READOUT_longitude : 38|26@1- (0.000001,0) [0|0] "" MASTER,MOTOR
 
+BO_ 66 COMPASS_Data: 2 GPS
+ SG_ COMPASS_Heading : 0|16@1+ (1,0) [0|359] "DEGREE" MASTER
+ 
 BO_ 80 APP_HB: 1 APP 
  SG_ APP_HEARTBEAT_cmd : 0|8@1+ (1,0) [0|0] "" MASTER 
  
-
+BO_ 1 APP_START_STOP: 1 APP
+ SG_ APP_START_STOP_cmd : 0|8@1+ (1,0) [0|0] "" MASTER
+ 
 BO_ 200 SENSOR_SONARS: 8 SENSOR
  SG_ SENSOR_SONARS_mux M : 0|4@1+ (1,0) [0|0] "" DRIVER,IO
  SG_ SENSOR_SONARS_err_count : 4|12@1+ (1,0) [0|0] "" DRIVER,IO
@@ -101,6 +111,7 @@ BO_ 503 DBC_TEST4: 8 IO
 CM_ BU_ DRIVER "The driver controller driving the car";
 CM_ BU_ MOTOR "The motor controller of the car";
 CM_ BU_ SENSOR "The sensor controller of the car";
+CM_ BU_ APP "The communication bridge controller of car";
 CM_ BO_ 100 "Sync message used to synchronize the controllers";
 
 BA_DEF_ "BusType" STRING ;

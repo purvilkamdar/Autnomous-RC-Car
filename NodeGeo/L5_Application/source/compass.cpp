@@ -10,12 +10,11 @@
 #include "math.h"
 #include "can.h"
 #include "command_handler.hpp"
+#include "_can_dbc/generated_can.h"
 
 #define compass_baudrate 57600
 
 can_msg_t message;
-
-compass_data_t compass_values;
 
 static Uart3& u3 = Uart3::getInstance();
 static const int rx_q = 100;
@@ -23,16 +22,14 @@ static const int tx_q = 100;
 
 char *temp;
 
-float heading;
+uint16_t heading;
 
+COMPASS_Data_t COMPASS_Value = {0};
 
-void uart3_init(void)
+void serial_init(void)
 {
 	u3.init(compass_baudrate,rx_q,tx_q);
-}
 
-void can_init(void)
-{
 	CAN_init(can1,100,10,10,NULL,NULL);
 	CAN_reset_bus(can1);
 	CAN_bypass_filter_accept_all_msgs();
@@ -65,9 +62,18 @@ void get_compass_data(void)
 	if(temp!=NULL)								  // check if the data valid
 	{
 	//printf("%s\n",temp);
-	heading = atof(temp);
+
+	float x = atof(temp);
+	printf("%0.2f\n",x);
+	heading = (x *100);
 	//sscanf(temp,"%f",&heading);
 	}
-	printf("%0.1f\n",heading);
+	printf("%i\n",heading);
+
+	//COMPASS_Value.COMPASS_Heading = heading;
 }
 
+void can_tx(void)
+{
+	//dbc_encode_and_send_COMPASS_Data(&COMPASS_Value);
+}
