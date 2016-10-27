@@ -30,6 +30,7 @@ public:
 	void run_trajectory (status_t& status, order_t& order);
 	void set_thresholds (int min_sensor_dist_, int med_sensor_dist_, int max_heading_error_, int med_heading_error_);
 	bool all_sensors_clear(status_t& status);
+	friend int calculate_next_state(status_t& status);
 
 private:
 	int current_state;

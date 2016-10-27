@@ -48,7 +48,7 @@ private:
 	GeoControl *itsGeoNode;
 	MobileControl *itsMobileNode;
  //comment 2
-=======
+//=======
 	TrajectoryEngine *itsTrajectoryEngine;
  //comment
 	//friend class SingletonTemplate<coordinator>;

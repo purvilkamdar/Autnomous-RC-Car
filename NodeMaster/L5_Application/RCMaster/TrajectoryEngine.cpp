@@ -16,7 +16,47 @@ TrajectoryEngine::TrajectoryEngine() {
 TrajectoryEngine::~TrajectoryEngine() {
 	// TODO Auto-generated destructor stub
 }
+	int calculate_next_state(status_t& status)
+	{
+		int next_state=0;
+		switch (status.heading_state){
+		case (way_off_to_left):{
+				next_state = hard_right;
+					break;
+					}
+		case (way_off_to_right):{
+					next_state = hard_left;
+					break;
+				}
+		case (off_to_left): {
+					next_state = soft_right;
+					break;
+				}
+		case(off_to_right): {
+					next_state = soft_left;
+					break;
+				}
+		}
 
+			// if all sensors are blocked, stop
+			if (status.left_state == too_close && status.center_state == too_close && status.right_state == too_close){
+				next_state = idle;
+			}
+		    // go right if left or center are too close
+			else if (status.left_state == too_close || status.center_state == too_close)	{
+				next_state = hard_right;
+			}
+			else if (status.right_state == too_close) {
+				next_state = hard_left;
+			}
+			else if (status.left_state == medium || status.center_state == medium)	{
+				next_state = soft_right;
+			}
+			else if (status.right_state == medium) {
+				next_state = soft_left;
+			}
+			return next_state;
+}
 void TrajectoryEngine::run_trajectory (status_t& status, order_t& order) {
 
 	switch (current_state){
@@ -37,34 +77,7 @@ void TrajectoryEngine::run_trajectory (status_t& status, order_t& order) {
 	    //  and the subsequent if-then obstacle avoidance statements
 	    // override the outcome of heading choice if necessary
 
-
-		if (status.heading_state == way_off_to_left){
-			next_state = hard_right;
-		} else if (status.heading_state == way_off_to_right) {
-			next_state = hard_left;
-		} else if (status.heading_state == off_to_left) {
-			next_state = soft_right;
-		} else if (status.heading_state == off_to_right) {
-			next_state = soft_left;
-		}
-
-		// if all sensors are blocked, stop
-		if (status.left_state == too_close && status.center_state == too_close && status.right_state == too_close){
-			next_state = idle;
-		}
-	    // go right if left or center are too close
-		else if (status.left_state == too_close || status.center_state == too_close)	{
-			next_state = hard_right;
-		}
-		else if (status.right_state == too_close) {
-			next_state = hard_left;
-		}
-		else if (status.left_state == medium || status.center_state == medium)	{
-			next_state = soft_right;
-		}
-		else if (status.right_state == medium) {
-			next_state = soft_left;
-		}
+		next_state=calculate_next_state(status);
 
 		if (status.app_cmd == stop) next_state = idle;
 			break;
