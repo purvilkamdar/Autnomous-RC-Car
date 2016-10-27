@@ -13,6 +13,8 @@
 #include "MotorControl.h"
 #include "SensorsControl.h"
 #include "MobileControl.h"
+#include "TrajectoryEngine.h"
+#include "order_and_status.h"
 //#include "singleton_template.hpp"
 
 #define MOTOR_STATUS 400
@@ -20,25 +22,32 @@
 #define GPS_Data 65
 #define APP_START_STOP 1
 
-#define MIN_DISTANCE_INCHES 12
+#define MIN_DISTANCE_INCHES 10
+#define MED_DISTANCE_INCHES 15
+
+#define MAX_HEADING_ERR_DEG 45
+#define MED_HEADING_ERR_DEG 25
 
 class coordinator {    //: public SingletonTemplate<coordinator> {
 public:
 
 	virtual ~coordinator();
 	void on1HzHearbeat();
-	bool sendHeartbeat(int motor_cmd,int steer_cmd);
+	bool sendHeartbeat(void);
 	bool getNodeStatus();
-	void onStatusReceived();
-	void processAndSendOrder();
+	void onStatusReceived(void);
+	void processAndSendOrder(status_t& status, order_t& order);
 	coordinator();
 	int motor_cmd;
 	int steer_cmd;
+	status_t status;
+	order_t  order;
 private:
 	MotorControl *itsMotorNode;
 	SensorsControl *itsSensorNode;
 	GeoControl *itsGeoNode;
 	MobileControl *itsMobileNode;
+	TrajectoryEngine *itsTrajectoryEngine;
  //comment
 	//friend class SingletonTemplate<coordinator>;
 
