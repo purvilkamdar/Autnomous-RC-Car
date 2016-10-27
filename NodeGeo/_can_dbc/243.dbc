@@ -32,7 +32,7 @@ NS_ :
 
 BS_:
 
-BU_: DBG DRIVER IO MOTOR SENSOR GPS
+BU_: DBG MASTER GPS MOTOR SENSOR APP
 
 
 BO_ 500 DBC_TEST1: 8 IO
@@ -53,7 +53,7 @@ BO_ 502 DBC_TEST3: 8 IO
  SG_ DBC_TEST3_real_signed2 : 8|8@1- (1,4) [0|0] "" DBG
 
 BO_ 100 DRIVER_HEARTBEAT: 1 DRIVER
- SG_ DRIVER_HEARTBEAT_cmd : 0|8@1+ (1,0) [0|0] "" SENSOR,MOTOR,GPS
+ SG_ DRIVER_HEARTBEAT_cmd : 0|8@1+ (1,0) [0|0] "" SENSOR,MOTOR
 
 BO_ 101 MOTOR_CMD: 1 DRIVER
  SG_ MOTOR_CMD_steer : 0|4@1+ (1,-5) [-5|5] "" MOTOR
@@ -62,6 +62,28 @@ BO_ 101 MOTOR_CMD: 1 DRIVER
 BO_ 400 MOTOR_STATUS: 3 MOTOR
  SG_ MOTOR_STATUS_wheel_error : 0|1@1+ (1,0) [0|0] "" DRIVER,IO
  SG_ MOTOR_STATUS_speed_kph : 8|16@1+ (0.001,0) [0|0] "kph" DRIVER,IO
+ 
+BO_ 32 MASTER_HB: 1 MASTER 
+ SG_ MASTER_HEARTBEAT_cmd : 0|8@1+ (1,0) [0|0] "" SENSOR,MOTOR,GPS,APP
+ 
+BO_ 16 SENSOR_HB: 1 SENSOR 
+ SG_ SENSOR_HEARTBEAT_cmd : 0|8@1+ (1,0) [0|0] "" MASTER
+
+BO_ 48 MOTOR_HB: 1 MOTOR 
+ SG_ MOTOR_HEARTBEAT_cmd : 0|8@1+ (1,0) [0|0] "" MASTER
+ 
+BO_ 64 GPS_HB: 1 GPS 
+ SG_ GPS_HEARTBEAT_cmd : 0|8@1+ (1,0) [0|0] "" MASTER
+ 
+BO_ 65 GPS_DATA: 8 GPS
+ SG_ GPS_READOUT_valid_bit : 0|1@1+ (1,0) [0|1] "" MASTER,MOTOR
+ SG_ GPS_READOUT_read_counter : 1|11@1+ (1,0) [0|2000] "" MASTER,MOTOR
+ SG_ GPS_READOUT_latitude : 12|26@1+ (0.000001,0) [0|0] "" MASTER,MOTOR
+ SG_ GPS_READOUT_longitude : 38|26@1- (0.000001,0) [0|0] "" MASTER,MOTOR
+
+BO_ 80 APP_HB: 1 APP 
+ SG_ APP_HEARTBEAT_cmd : 0|8@1+ (1,0) [0|0] "" MASTER 
+ 
 
 BO_ 200 SENSOR_SONARS: 8 SENSOR
  SG_ SENSOR_SONARS_mux M : 0|4@1+ (1,0) [0|0] "" DRIVER,IO
@@ -74,17 +96,19 @@ BO_ 200 SENSOR_SONARS: 8 SENSOR
  SG_ SENSOR_SONARS_no_filt_middle m1 : 28|12@1+ (0.1,0) [0|0] "" DBG
  SG_ SENSOR_SONARS_no_filt_right m1 : 40|12@1+ (0.1,0) [0|0] "" DBG
  SG_ SENSOR_SONARS_no_filt_rear m1 : 52|12@1+ (0.1,0) [0|0] "" DBG
- 
-BO_ 64 GPS_READOUT: 8 GPS
- SG_ GPS_READOUT_valid_bit : 0|1@1+ (1,0) [0|1] "" DRIVER,MOTOR
- SG_ GPS_READOUT_read_counter : 1|11@1+ (1,0) [0|2000] "" DRIVER,MOTOR
- SG_ GPS_READOUT_latitude : 12|26@1+ (0.000001,0) [0|0] "" DRIVER,MOTOR
- SG_ GPS_READOUT_longitude : 38|26@1- (0.000001,0) [0|0] "" DRIVER,MOTOR
+
+BO_ 800 MASTER_LIGHT_RQ: 1 MASTER 
+ SG_ MASTER_HEARTBEAT_cmd : 0|8@1+ (1,0) [0|0] "" SENSOR
+
+BO_ 801 LIGHT_SENSOR: 1 SENSOR
+ SG_ LIGHT_SENSOR_value : 0|8@1+ (1,0) [0|0] "light intensity" MASTER
 
 BO_ 503 DBC_TEST4: 8 IO
  SG_ DBC_TEST4_real_signed1 : 0|32@1- (1,0) [0|0] "" DBG
  SG_ DBC_TEST4_real_signed2 : 32|16@1- (1,0) [-32768|32767] "" DBG
  SG_ DBC_TEST4_real_overflow : 48|16@1+ (1,0) [0|0] "" DBG
+
+
 
 CM_ BU_ DRIVER "The driver controller driving the car";
 CM_ BU_ MOTOR "The motor controller of the car";

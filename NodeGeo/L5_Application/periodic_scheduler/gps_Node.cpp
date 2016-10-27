@@ -13,13 +13,40 @@
 #include "_can_dbc/generated_can.h"
 #include "can.h"
 
+/*
+ * Initializes serial ports
+ * 	->Uart3 to receive Data from GPS module
+ * 	->Can1 main Canbus communication port
+ * 	->Can2 backup or for Canbus testing
+ */
 void serialInit(void)
 {
 	Uart3::getInstance().init(9600,128,128);
-	CAN_init(can1,9600,100,100,NULL,NULL);
-	CAN_init(can2,9600,100,100,NULL,NULL);
+	CAN_init(can1,100,5,5,NULL,NULL);
+	CAN_init(can2,100,5,5,NULL,NULL);
+	CAN_reset_bus(can1);
+	CAN_reset_bus(can2);
+	CAN_bypass_filter_accept_all_msgs();
 }
 
+/*
+ * Function to check if Canbus is off. If so, turn is back on
+ * Runs in the 1Hz periodic function
+ */
+void check_reset_canbus(void)
+{
+	if(CAN_is_bus_off(can1))
+		CAN_reset_bus(can1);
+	if(CAN_is_bus_off(can2))
+		CAN_reset_bus(can2);
+}
+
+/*
+ * This function takes in the type of GPS Address and GPS_DATA structure
+ * The desired GPS data is filtered and parsed into the GPS_DATA structure
+ * 		-So far, this function is only optimized to filter GNRMC gps address type
+ * 		 which is all we really need.
+ */
 void readGPS(gps_name addr, GPS_DATA *data_r)
 {
 	static Uart3 &u3 = Uart3::getInstance();
@@ -89,13 +116,12 @@ void readGPS(gps_name addr, GPS_DATA *data_r)
 			printf("Latitude =  %f\n", data_r->latitude);
 			printf("Longitude = %f\n", data_r->longitude);
 			}
-
 	}
-
-
-
 }
 
+/*
+ * This function is used by GPS node coupled with functions from generated code to send messages onto the bus
+ */
 bool dbc_app_send_can_msg(uint32_t mid, uint8_t dlc, uint8_t bytes[8])
 {
     can_msg_t can_msg = { 0 };
@@ -106,6 +132,10 @@ bool dbc_app_send_can_msg(uint32_t mid, uint8_t dlc, uint8_t bytes[8])
     return CAN_tx(can1, &can_msg, 0);
 }
 
+/*
+ * Just another quick function to send a message onto Canbus
+ * Mostly use it for Canbus testing and troubleshooting only.
+ */
 void sendCan1_Any_Message(uint32_t id, uint32_t frame, uint32_t data_len, uint64_t data)
 {
 can_msg_t msg;

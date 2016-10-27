@@ -5,30 +5,190 @@
     android:id="@+id/activity_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="com.example.parth.titans.MainActivity">
+
+    tools:context="com.example.parth.titans.MainActivity"
+    android:background="@color/colorPrimaryDark"
+    android:textAlignment="center">
 
 
-    <ImageButton
+        <TextView
+        android:text="Titans"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:srcCompat="@android:drawable/ic_menu_directions"
-        android:id="@+id/imageButton"
+        android:layout_height="50dp"
+            android:id="@+id/textView4"
+            android:layout_alignParentTop="true"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:textColor="@color/cast_expanded_controller_progress_text_color"
+        android:textAlignment="center"
+        android:gravity="center_vertical"
+            android:layout_alignStart="@+id/textView2" />
+
+    <fragment
+        android:id="@+id/map"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="125dp"
+        android:layout_marginBottom="50dp"
+        tools:context="com.example.parth.titans.MapsActivity"
         android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
+        android:layout_alignParentStart="true" />
 
-    <ImageButton
+    <SurfaceView
+        android:layout_width="match_parent"
+        android:layout_height="75dp"
+        android:background="@color/white"
+        android:layout_below="@+id/textView4"
+        android:layout_alignParentStart="true"
+        android:id="@+id/surfaceView" />
+
+    <SurfaceView
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:id="@+id/surfaceView2"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true"
+        android:background="@color/white" />
+
+    <Button
+        android:text="START"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:srcCompat="@android:drawable/stat_sys_data_bluetooth"
-        android:id="@+id/imageButton3"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
-        android:backgroundTint="@android:color/holo_blue_dark" />
+        android:id="@+id/button4" />
+
+    <TextView
+        android:text="0.000000, 0.000000"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/button4"
+        android:layout_alignParentStart="true"
+        android:id="@+id/textView"
+        android:layout_toStartOf="@+id/button4"
+        android:layout_alignParentBottom="true"
+        android:textAlignment="center"
+        android:textColor="@color/colorPrimaryDark"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:gravity="center_vertical" />
+
+    <TextView
+        android:text="LEFT"
+        android:layout_marginLeft="10dp"
+        android:textColor="@color/colorPrimaryDark"
+        android:layout_width="60dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/textView4"
+        android:layout_alignParentStart="true"
+        android:id="@+id/textView2"
+        android:layout_alignEnd="@+id/textView3" />
+
+    <ProgressBar
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="180dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/textView4"
+        android:layout_toEndOf="@+id/textView2"
+        android:id="@+id/progressBar2"
+        android:layout_alignBottom="@+id/textView2" />
+
+    <TextView
+        android:text="CENTER"
+        android:layout_marginLeft="10dp"
+        android:textColor="@color/colorPrimaryDark"
+        android:layout_width="60dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/textView2"
+        android:layout_alignParentStart="true"
+        android:id="@+id/textView3" />
+
+    <TextView
+        android:text="RIGHT"
+        android:layout_marginLeft="10dp"
+        android:textColor="@color/colorPrimaryDark"
+        android:layout_width="60dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/textView3"
+        android:layout_alignParentStart="true"
+        android:id="@+id/textView5"
+        android:layout_alignEnd="@+id/textView3" />
+
+    <TextView
+        android:text="REAR"
+        android:layout_marginLeft="10dp"
+        android:textColor="@color/colorPrimaryDark"
+        android:layout_width="60dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/textView5"
+        android:layout_alignParentStart="true"
+        android:id="@+id/textView6"
+        android:layout_alignEnd="@+id/textView5" />
+
+    <ProgressBar
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="180dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/progressBar2"
+        android:layout_toEndOf="@+id/textView2"
+        android:id="@+id/progressBar3" />
+
+    <ProgressBar
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="180dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/textView3"
+        android:layout_toEndOf="@+id/textView3"
+        android:id="@+id/progressBar4" />
+
+    <ProgressBar
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="180dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/textView5"
+        android:layout_toEndOf="@+id/textView6"
+        android:id="@+id/progressBar5" />
+
+    <TextView
+        android:text="Not Connected"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:id="@+id/textView7"
+        android:layout_alignParentTop="true"
+        android:layout_above="@+id/surfaceView"
+        android:padding="5dp"
+        android:gravity="center_vertical"
+        android:textColor="@color/white" />
+
+    <TextView
+        android:text="SPEED"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/colorPrimaryDark"
+        android:layout_below="@+id/textView7"
+        android:layout_alignParentEnd="true"
+        android:id="@+id/textView8"
+        android:layout_toEndOf="@+id/progressBar2"
+        android:layout_alignBottom="@+id/progressBar3"
+        android:textSize="24sp"
+        android:textAlignment="center"
+        android:gravity="center_vertical" />
+
+    <TextView
+        android:text="0.000 mph"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/progressBar4"
+        android:id="@+id/textView9"
+        android:layout_alignParentEnd="true"
+        android:layout_toEndOf="@+id/progressBar4"
+        android:layout_alignBottom="@+id/progressBar5"
+        android:gravity="center_vertical"
+        android:textAlignment="center"
+        android:textColor="@android:color/holo_green_dark"
+        android:textSize="18sp" />
+
 
 </RelativeLayout>

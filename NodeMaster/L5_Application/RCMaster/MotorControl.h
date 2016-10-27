@@ -10,6 +10,7 @@
 
 #include "NodeControl.h"
 
+
 class MotorControl {//: public NodeControl {
 public:
 	MotorControl();
@@ -17,8 +18,10 @@ public:
 	bool getStatus();
 	bool sendOrder();
 	void setName();
+	int motor_cmd;
 private:
 	char* nodeName;
+
 };
 
 #endif /* L5_APPLICATION_RCMASTER_MOTORCONTROL_H_ */

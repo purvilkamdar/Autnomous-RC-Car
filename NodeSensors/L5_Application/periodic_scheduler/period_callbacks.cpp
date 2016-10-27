@@ -53,7 +53,9 @@ bool dbc_app_send_can_msg(uint32_t mid, uint8_t dlc, uint8_t bytes[8])
     return CAN_tx(can1, &can_msg, 0);
 }
 
-SENSOR_HB_t sonic_sensors_HB = {0};
+SENSOR_DATA_t sonic_sensor_data;
+
+MASTER_HB_t master_hb_msg = { 0 };
 
 /* 21 buckets - 6.5 meters(256 inches) is the max range of sonic sensors.
  256 inches is divided into 12 inch ranges - total 21 buckets (12 * 21 ~ 252 inches) */
@@ -266,22 +268,24 @@ void period_10Hz(uint32_t count)
 			{
 			LE.toggle(4);
 			ApplyFilter();
-
-
+			sonic_sensor_data.SENSOR_left_sensor = left_filter.filtered_val;
+			sonic_sensor_data.SENSOR_middle_sensor = middle_filter.filtered_val;
+			sonic_sensor_data.SENSOR_right_sensor = right_filter.filtered_val;
+			LD.setNumber(sonic_sensor_data.SENSOR_left_sensor);
 			//Log filtered left,middle & right sensor values
 			//LOG_INFO("F %d %d %d\n",left_filter.filtered_val,middle_filter.filtered_val,right_filter.filtered_val);
 			Reset_filters();
 			}
 }
 
-MASTER_HB_t master_hb_msg = { 0 };
+
 void period_100Hz(uint32_t count)
 {
     can_msg_t can_msg;
-   // LD.setNumber(0);
+
 
         // Empty all of the queued, and received messages within the last 10ms (100Hz callback frequency)
-       if (CAN_rx(can1, &can_msg, 0))
+       while (CAN_rx(can1, &can_msg, 0))
         {
     	   LE.toggle(2);
             // Form the message header from the metadata of the arriving message
@@ -291,16 +295,15 @@ void period_100Hz(uint32_t count)
 
             // Attempt to decode the message (brute force, but should use switch/case with MID)
             dbc_decode_MASTER_HB(&master_hb_msg, can_msg.data.bytes, &can_msg_hdr);
-
             if(can_msg_hdr.mid == 0x20)
             {
-            LD.setNumber(master_hb_msg.MASTER_HEARTBEAT_cmd);
-            sonic_sensors_HB.SENSOR_HEARTBEAT_cmd = left_filter.filtered_val;
-            dbc_encode_and_send_SENSOR_HB(&sonic_sensors_HB);
+            //sonic_sensors_HB.SENSOR_HEARTBEAT_cmd = 0x01;
+            //dbc_encode_and_send_SENSOR_HB(&sonic_sensors_HB);
+            dbc_encode_and_send_SENSOR_DATA(&sonic_sensor_data);
             }
-            else
-            	LD.setNumber(0);
-           }
+
+         }
+
 
        if(CAN_is_bus_off(can1))
        	 //Start the CAN bus

@@ -58,7 +58,7 @@ coordinator* NodeCoordinator = new coordinator();
 }*/
 bool period_init(void)
 {
-	CAN_init(can1,100,3,3,NULL,NULL);
+	CAN_init(can1,100,10,10,NULL,NULL);
 	CAN_bypass_filter_accept_all_msgs();
 	CAN_reset_bus(can1);
     return true; // Must return true upon success
@@ -87,34 +87,30 @@ bool period_reg_tlm(void)
 }*/
 void period_1Hz(uint32_t count)
 {
- //addng comment
-	if(NodeCoordinator->getNodeStatus())
-	{
-		//printf("Msg Received");
-		NodeCoordinator->onStatusReceived();
-	}
-	/*MASTER_HB_t master_cmd ={0};
-	master_cmd.MASTER_HEARTBEAT_cmd=3;
-
-	    // This function will encode the CAN data bytes, and send the CAN msg using dbc_app_send_can_msg()
-	dbc_encode_and_send_MASTER_HB(&master_cmd);
-
-
-	printf("Hello\n");*/
 
     LE.toggle(1);
+
 }
 
 void period_10Hz(uint32_t count)
 {
+	if(NodeCoordinator->getNodeStatus())
+		{
+			//printf("Msg Received");
+			NodeCoordinator->onStatusReceived();
+		}
+
 	if(CAN_is_bus_off(can1))
-			{
-				CAN_reset_bus(can1);
-			}
+					{
+						CAN_reset_bus(can1);
+
+					}
+
 }
 
 void period_100Hz(uint32_t count)
 {
+
     LE.toggle(3);
 }
 
