@@ -107,7 +107,9 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 invalidateOptionsMenu();
             } else if (BluetoothLeService.ACTION_GATT_DISCONNECTED.equals(action)) {
                 connectionState.setText("Not Connected");
-                scanLeDevice(true);
+                while (BluetoothLeService.mConnectionState!=2) {
+                    scanLeDevice(true);
+                }
                 invalidateOptionsMenu();
 
             }
@@ -193,6 +195,14 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         connectionState=(TextView)findViewById(R.id.textView7);
         startButton=(Button)findViewById(R.id.button4);
         handler=new Handler();
+        new Thread(new Runnable() {
+            public void run() {
+                Log.i("TitansThread:","thread running");
+                if(btLeService!=null) {
+                    btLeService.readCustomCharacteristic();
+                }
+            }
+        }).start();
 
         // To check whether device supports BLE or not
         if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
