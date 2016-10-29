@@ -95,18 +95,6 @@ bool coordinator::getNodeStatus(){
                  status.sensor_center = sensor_can_msg.SENSOR_middle_sensor;
                  status.sensor_right = sensor_can_msg.SENSOR_right_sensor;
                  status.sensor_left = sensor_can_msg.SENSOR_left_sensor;
-                 /*
-                 if(sensor_can_msg.SENSOR_left_sensor  < MIN_DISTANCE_INCHES){
-                	 steer_cmd = right_full;
-                 } else if (sensor_can_msg.SENSOR_right_sensor  < MIN_DISTANCE_INCHES) {
-                	 steer_cmd = left_full;
-                 } else {
-                	 steer_cmd = center;
-                 }
-                 */
-//                 printf("Sensor left : %d\n",sensor_can_msg.SENSOR_left_sensor);
-//                 printf("Sensor right : %d\n",sensor_can_msg.SENSOR_right_sensor);
-//                 printf("Sensor middle : %d\n",sensor_can_msg.SENSOR_middle_sensor);
 
               break;
              case GPS_Data:
@@ -120,7 +108,6 @@ bool coordinator::getNodeStatus(){
                  dbc_decode_APP_START_STOP(&app_can_msg, can_msg.data.bytes, &can_msg_hdr);
                 // printf("APP_START_STOP_cmd : %d\n",app_can_msg.APP_START_STOP_cmd);
                  status.app_cmd = app_can_msg.APP_START_STOP_cmd;
-                 motor_cmd = app_can_msg.APP_START_STOP_cmd;
 
             	 break;
              default:
@@ -143,6 +130,8 @@ void coordinator::processAndSendOrder(status_t& status, order_t& order){
 	itsSensorNode->check_sensors(status);
 	itsGeoNode->checkHeading(status);
     itsTrajectoryEngine->run_trajectory(status, order);
+    printf("Steer Order : %d\n",order.steer_order);
+    printf("Speed Order : %d\n",order.speed_order);
 }
 coordinator::~coordinator() {
 	// TODO Auto-generated destructor stub

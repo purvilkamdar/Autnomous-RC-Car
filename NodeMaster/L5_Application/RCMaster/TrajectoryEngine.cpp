@@ -16,52 +16,13 @@ TrajectoryEngine::TrajectoryEngine() {
 TrajectoryEngine::~TrajectoryEngine() {
 	// TODO Auto-generated destructor stub
 }
-	int calculate_next_state(status_t& status)
-	{
-		int next_state=0;
-		switch (status.heading_state){
-		case (way_off_to_left):{
-				next_state = hard_right;
-					break;
-					}
-		case (way_off_to_right):{
-					next_state = hard_left;
-					break;
-				}
-		case (off_to_left): {
-					next_state = soft_right;
-					break;
-				}
-		case(off_to_right): {
-					next_state = soft_left;
-					break;
-				}
-		}
 
-			// if all sensors are blocked, stop
-			if (status.left_state == too_close && status.center_state == too_close && status.right_state == too_close){
-				next_state = idle;
-			}
-		    // go right if left or center are too close
-			else if (status.left_state == too_close || status.center_state == too_close)	{
-				next_state = hard_right;
-			}
-			else if (status.right_state == too_close) {
-				next_state = hard_left;
-			}
-			else if (status.left_state == medium || status.center_state == medium)	{
-				next_state = soft_right;
-			}
-			else if (status.right_state == medium) {
-				next_state = soft_left;
-			}
-			return next_state;
-}
 void TrajectoryEngine::run_trajectory (status_t& status, order_t& order) {
 
 	switch (current_state){
-	case (idle):
-         if (status.app_cmd == drive && all_sensors_clear(status) ){
+	case (idle): // TODO remove comment when app is used
+         if (status.app_cmd == drive )
+         {
         	 next_state = forward;
          }
 	     order.steer_order = center;
@@ -77,10 +38,45 @@ void TrajectoryEngine::run_trajectory (status_t& status, order_t& order) {
 	    //  and the subsequent if-then obstacle avoidance statements
 	    // override the outcome of heading choice if necessary
 
-		next_state=calculate_next_state(status);
+/*
+		if (status.heading_state == way_off_to_left){
+			next_state = hard_right;
+		} else if (status.heading_state == way_off_to_right) {
+			next_state = hard_left;
+		} else if (status.heading_state == off_to_left) {
+			next_state = soft_right;
+		} else if (status.heading_state == off_to_right) {
+			next_state = soft_left;
+		}*/
 
-		if (status.app_cmd == stop) next_state = idle;
-			break;
+		// if all sensors are blocked, stop
+		if (status.left_state == too_close && status.center_state == too_close && status.right_state == too_close){
+			next_state = idle;
+		}
+	    // go right if left or center are too close
+		else if (status.left_state == too_close || status.center_state == too_close)
+		{
+			if((status.left_state == too_close && status.center_state == too_close) ||
+					status.left_state == too_close)
+			{
+				next_state = hard_right;
+			} else if(status.center_state == too_close ){
+				next_state = hard_right_center;
+			}
+
+		}
+		else if (status.right_state == too_close) {
+			next_state = hard_left;
+		}
+		else if (status.left_state == medium || status.center_state == medium)	{
+			next_state = soft_right;
+		}
+		else if (status.right_state == medium) {
+			next_state = soft_left;
+		}
+
+	    if (status.app_cmd == stop) next_state = idle;
+		break;
 	// on the turn states we just wait to recover
     // and return to forward
     //if subsequent turn decisions are needed, it will be decided in forward state
@@ -92,7 +88,17 @@ void TrajectoryEngine::run_trajectory (status_t& status, order_t& order) {
 			next_state = forward;
 		}
 		if (status.app_cmd == stop) next_state = idle;
-			break;
+		break;
+
+	case (soft_right_center):
+		order.steer_order = right_half;
+	    order.speed_order = slow_speed;
+		if (status.center_state == clear && status.heading_state != off_to_left){
+			next_state = forward;
+		}
+		if (status.app_cmd == stop) next_state = idle;
+		break;
+
 	case (hard_right):
 
 		order.steer_order = right_full;
@@ -100,9 +106,16 @@ void TrajectoryEngine::run_trajectory (status_t& status, order_t& order) {
 		if (status.left_state != too_close && status.heading_state != way_off_to_left){
 			next_state = forward;
 		}
+        if (status.app_cmd == stop) next_state = idle;
+		break;
+	case (hard_right_center):
+		order.steer_order = right_full;
+		order.speed_order = slow_speed;
+		if (status.center_state == clear && status.heading_state != off_to_left){
+			next_state = forward;
+		}
 		if (status.app_cmd == stop) next_state = idle;
 		break;
-
 	case (soft_left):
 
 		order.steer_order = left_half;
@@ -111,7 +124,15 @@ void TrajectoryEngine::run_trajectory (status_t& status, order_t& order) {
 		if (status.right_state != medium && status.heading_state != off_to_right){
 			next_state = forward;
 		}
-		if (status.app_cmd == stop) next_state = idle;
+	    if (status.app_cmd == stop) next_state = idle;
+		break;
+	case (soft_left_center):
+		order.steer_order = left_half;
+	    order.speed_order = slow_speed;
+		if (status.center_state == clear && status.heading_state != off_to_left){
+			next_state = forward;
+		}
+	   if (status.app_cmd == stop) next_state = idle;
 		break;
 	case (hard_left):
 
@@ -122,10 +143,20 @@ void TrajectoryEngine::run_trajectory (status_t& status, order_t& order) {
 		}
 		if (status.app_cmd == stop) next_state = idle;
 		break;
+	case (hard_left_center):
+		order.steer_order = left_full;
+	    order.speed_order = slow_speed;
+	   if (status.center_state == clear && status.heading_state != off_to_left){
+			next_state = forward;
+	   }
+	   if (status.app_cmd == stop) next_state = idle;
+			break;
 	default:
 		break;
 	}
-
+	current_state=next_state;
+printf("Trajectory current State : %d \n",current_state);
+printf("Trajectory next State : %d \n",next_state);
 }
 
 

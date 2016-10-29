@@ -28,5 +28,6 @@ void GeoControl::set_thresholds (int max_heading_error_, int med_heading_error_)
 
 
 void GeoControl::checkHeading(status_t& status){
-
+    //TODO check real heading error here
+	status.heading_state = on_target;
 }

@@ -22,8 +22,8 @@
 #define GPS_Data 65
 #define APP_START_STOP 1
 
-#define MIN_DISTANCE_INCHES 10
-#define MED_DISTANCE_INCHES 15
+#define MIN_DISTANCE_INCHES 20
+#define MED_DISTANCE_INCHES 35
 
 #define MAX_HEADING_ERR_DEG 45
 #define MED_HEADING_ERR_DEG 25
@@ -47,8 +47,6 @@ private:
 	SensorsControl *itsSensorNode;
 	GeoControl *itsGeoNode;
 	MobileControl *itsMobileNode;
- //comment 2
-//=======
 	TrajectoryEngine *itsTrajectoryEngine;
  //comment
 	//friend class SingletonTemplate<coordinator>;

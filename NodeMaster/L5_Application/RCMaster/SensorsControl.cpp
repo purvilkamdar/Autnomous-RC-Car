@@ -60,6 +60,7 @@ void SensorsControl::check_sensors(status_t& status){
 	status.right_state = right_state;
 	status.left_state = left_state;
 
+
 }
 
 
