@@ -38,10 +38,16 @@
 #include "string.h"
 #include "lpc_pwm.hpp"
 
+// PWM FREQUENCY USED FOR STEER AND SPEED 100 Hz
+// TIME PERIOD : 10 ms
+// FOR SPEED_LEVEL_FAST DUTY CYCLE : 20% of TIME PERIOD
+
 #define SPEED_LEVEL_STOP 				14
 #define SPEED_LEVEL_SLOW 				15.8
 #define SPEED_LEVEL_MEDIUM 				18
 #define SPEED_LEVEL_FAST 				20
+#define REVERSE							13.1	//Or 13.00
+#define MOTOR_CONTROLLER_INIT			14.5	//Duty Cycle Required for DC MOTOR INIT
 
 #define STEERING_POS_LEFT				10
 #define STEERING_POS_SLIGHT_LEFT		12
@@ -50,7 +56,7 @@
 #define STEERING_POS_RIGHT				18
 
 
-PWM carSteer(PWM::pwm1, 8);
+PWM carSteer(PWM::pwm3, 8);
 PWM carSpeed(PWM::pwm2, 8);
 
 const MASTER_HB_t master_mia_msg = {0};
@@ -65,9 +71,7 @@ bool dbc_app_send_can_msg(uint32_t mid, uint8_t dlc, uint8_t bytes[8])
 {
     can_msg_t can_msg = { 0 };
     can_msg.msg_id                = mid;
-   // printf("\n MID %lu",mid);
     can_msg.frame_fields.data_len = dlc;
-    //printf("\n DLC %d",dlc);
     memcpy(can_msg.data.bytes, bytes, dlc);
 
     return CAN_tx(can1, &can_msg, 0);
@@ -95,6 +99,7 @@ bool period_init(void)
 									  CAN_gen_sid(can1, 0x021) }; // Only 1 ID is expected, hence small range
     CAN_setup_filter(slist, 2, NULL, 0, NULL, 0, NULL, 0);
     CAN_reset_bus(can1);
+    carSpeed.set(MOTOR_CONTROLLER_INIT);
     return true; // Must return true upon success
 }
 
@@ -114,7 +119,7 @@ bool period_reg_tlm(void)
 
 void period_1Hz(uint32_t count)
 {
-    LE.toggle(1);
+  //  LE.toggle(1);
 }
 
 MASTER_HB_t master_hb_msg = { 0 };
@@ -136,81 +141,79 @@ void period_10Hz(uint32_t count)
 	            // Attempt to decode the message (brute force, but should use switch/case with MID)
 
 	            motor_msg.MOTOR_STATUS_speed_mph = 9.0;
-	            if(can_msg_hdr.mid==0x20)
+	            if(can_msg_hdr.mid == 0x20)
 	            {
-	            	printf("Received command from master\n");
-	            	 dbc_decode_MASTER_HB(&master_hb_msg, can_msg.data.bytes, &can_msg_hdr);
-	            	 printf("Data received from maaster for speed is : %d\n",master_hb_msg.MASTER_SPEED_cmd);
-	            	 printf("Data received from maaste for steer is : %d\n",master_hb_msg.MASTER_STEER_cmd);
-	            	 printf("Data length received from maaste is : %d\n",can_msg_hdr.dlc);
-	            if(master_hb_msg.MASTER_SPEED_cmd == 1)
-	            {
-	            	carSpeed.set(SPEED_LEVEL_MEDIUM);
-	            	//printf("Got master command\n");
-
-	            		if(master_hb_msg.MASTER_STEER_cmd == 0)
-	            		{
-	            			carSteer.set(STEERING_POS_LEFT);
-	            		}
-
-	            		if(master_hb_msg.MASTER_STEER_cmd == 1)
-	            		{
-	            			carSteer.set(STEERING_POS_SLIGHT_LEFT);
-	            		}
-
-	            		if(master_hb_msg.MASTER_STEER_cmd == 2)
-	            		{
-	            			carSteer.set(STEERING_POS_CENTER);
-	            		}
-
-	            		if(master_hb_msg.MASTER_STEER_cmd == 3)
-	            		{
-	            			carSteer.set(STEERING_POS_SLIGHT_RIGHT);
-	            		}
-
-	            		if(master_hb_msg.MASTER_STEER_cmd == 4)
-	            		{
-	            			carSteer.set(STEERING_POS_RIGHT);
-	            		}
-/*
-
-	            		if(master_hb_msg.MASTER_STEER_cmd == 5)
-	            		{
-	            			carSteer.set(STEERING_POS_SLIGHT_RIGHT);
-	            		}
-
-	            		if((count % 8) == 6)
-	            		{
-	            			carSteer.set(STEERING_POS_CENTER);
-	            		}
-
-	            		if((count % 8) == 7)
-	            		{
-	            			carSteer.set(STEERING_POS_SLIGHT_LEFT);
-	            		}
-*/
-	            	LD.setNumber(master_hb_msg.MASTER_SPEED_cmd);
+	            		//printf("Received command from master\n");
+	            	 	 dbc_decode_MASTER_HB(&master_hb_msg, can_msg.data.bytes, &can_msg_hdr);
+	            	 	 //printf("Data received from maaster for speed is : %d\n",master_hb_msg.MASTER_SPEED_cmd);
+	            	 	 printf("Data received from maaste for steer is : %d\n",master_hb_msg.MASTER_STEER_cmd);
+	            	 	 //printf("Data length received from maaste is : %d\n",can_msg_hdr.dlc);
+//////
+	            	 	 switch(master_hb_msg.MASTER_STEER_cmd)
+	            	 	 {
+	            	 	 	 case 0:
+	            	 	 		 	 carSteer.set(STEERING_POS_LEFT);
+	            	 	 		 	 printf("The steer value is : %d\n",STEERING_POS_LEFT);
+	            	 	 		 	 break;
+	            	 	 	 case 1:
+	            	 	 		 	 carSteer.set(STEERING_POS_SLIGHT_LEFT);
+	            	 	 		 	 printf("The steer value is : %d\n",STEERING_POS_SLIGHT_LEFT);
+	            	 	 		 	 break;
+	            	 	 	 case 2:
+	            	 	 		 	 carSteer.set(STEERING_POS_CENTER);
+	            	 	 		 	printf("The steer value is : %d\n",STEERING_POS_CENTER);
+	            	 	 		 	 break;
+	            	 	 	 case 3:
+	            	 	 		 	 carSteer.set(STEERING_POS_SLIGHT_RIGHT);
+	            	 	 		 	printf("The steer value is : %d\n",STEERING_POS_SLIGHT_RIGHT);
+	            	 	 		 	 break;
+	            	 	 	 case 4:
+	            	 	 		 	 carSteer.set(STEERING_POS_RIGHT);
+	            	 	 		 	printf("The steer value is : %d\n",STEERING_POS_SLIGHT_RIGHT);
+	            	 	 		 	 break;
+	            	 	 }
 
 
-	            }
-	            else
-	            {
-	            	carSpeed.set(SPEED_LEVEL_STOP);
-	            	printf("Master Command is 0\n");
-	            	LD.setNumber(master_hb_msg.MASTER_SPEED_cmd);
-	            }
+	            	 	 switch(master_hb_msg.MASTER_SPEED_cmd)
+	            	 	 {
+	            	 	 	 case 0:
+	            	 	 		 	 carSpeed.set(SPEED_LEVEL_STOP);
+	            	 	 		 	 LD.setNumber(master_hb_msg.MASTER_SPEED_cmd);
+	            	 	 		 	 break;
+	            	 	 	 case 1:
+	            	 	 		 	 carSpeed.set(SPEED_LEVEL_SLOW);
+	            	 	 		 	 LD.setNumber(master_hb_msg.MASTER_SPEED_cmd);
+	            	 	 		 	 break;
+	            	 	 	 case 2:
+	            	 	 		 	 carSpeed.set(SPEED_LEVEL_MEDIUM);
+	            	 	 		 	 LD.setNumber(master_hb_msg.MASTER_SPEED_cmd);
+	            	 	 		 	 break;
+	            	 	 	 case 3:
+	            	 	 		 	 carSpeed.set(SPEED_LEVEL_FAST);
+	            	 	 		 	 LD.setNumber(master_hb_msg.MASTER_SPEED_cmd);
+	            	 	 		 	 break;
+	            	 	 	 case 4:
+	            	 	 		 	 carSpeed.set(REVERSE);
+	            	 	 		 	 LD.setNumber(master_hb_msg.MASTER_SPEED_cmd);
+	            	 	 		 	 break;
+	            	 	 }
+/////
 	            dbc_encode_and_send_MOTOR_STATUS(&motor_msg);
-	            //printf("Sent to CSN");
 	           }
 
 	        }
+
+	       	if(dbc_handle_mia_MASTER_HB(&master_can_msg,10))
+	       	{
+	       		LD.setNumber(88);
+	       	}
+
 	        if(CAN_is_bus_off(can1))
 	        {
-	        	LD.setNumber(4);
+	        	LD.setNumber(80);
 	            CAN_reset_bus(can1);
 	        }
 
-	//LE.toggle(2);
 }
 
 void period_100Hz(uint32_t count)
@@ -222,5 +225,5 @@ void period_100Hz(uint32_t count)
 // scheduler_add_task(new periodicSchedulerTask(run_1Khz = true));
 void period_1000Hz(uint32_t count)
 {
-    LE.toggle(4);
+  //  LE.toggle(4);
 }
