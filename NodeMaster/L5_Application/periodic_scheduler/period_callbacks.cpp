@@ -49,13 +49,7 @@ const uint32_t PERIOD_DISPATCHER_TASK_STACK_SIZE_BYTES = (512 * 3);
 
 /// Called once before the RTOS is started, this is a good place to initialize things once
 coordinator* NodeCoordinator = new coordinator();
-/*void can_bus_off_cb()
-{
-	if(CAN_is_bus_off(can1))
-	{
-		CAN_reset_bus(can1);
-	}
-}*/
+
 bool period_init(void)
 {
 	CAN_init(can1,100,10,10,NULL,NULL);
@@ -76,19 +70,11 @@ bool period_reg_tlm(void)
  * Below are your periodic functions.
  * The argument 'count' is the number of times each periodic task is called.
  */
-/*bool dbc_app_send_can_msg(uint32_t mid, uint8_t dlc, uint8_t bytes[8])
-{
-    can_msg_t can_msg = { 0 };
-    can_msg.msg_id                = mid;
-    can_msg.frame_fields.data_len = dlc;
-    memcpy(can_msg.data.bytes, bytes, dlc);
 
-    return CAN_tx(can1, &can_msg, 0);
-}*/
 void period_1Hz(uint32_t count)
 {
 
-    LE.toggle(1);
+
 
 }
 
@@ -101,10 +87,9 @@ void period_10Hz(uint32_t count)
 		}
 
 	if(CAN_is_bus_off(can1))
-					{
-						CAN_reset_bus(can1);
-
-					}
+	{
+		CAN_reset_bus(can1);
+	}
 
 }
 
