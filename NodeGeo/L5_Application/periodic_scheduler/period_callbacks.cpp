@@ -39,7 +39,6 @@
 #include "compass.hpp"
 
 
-
 /// This is the stack size used for each of the period tasks (1Hz, 10Hz, 100Hz, and 1000Hz)
 const uint32_t PERIOD_TASKS_STACK_SIZE_BYTES = (512 * 4);
 
@@ -68,19 +67,18 @@ bool period_reg_tlm(void)
 
 void period_1Hz(uint32_t count)
 {
-	canbus_check();
+	//canbus_check();
 
 }
 
 void period_10Hz(uint32_t count)
 {
 	get_compass_data();
-	can_tx();
 }
 
 void period_100Hz(uint32_t count)
 {
-
+    can_task();
 }
 
 // 1Khz (1ms) is only run if Periodic Dispatcher was configured to run it at main():

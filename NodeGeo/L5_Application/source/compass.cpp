@@ -14,7 +14,8 @@
 
 #define compass_baudrate 57600
 
-can_msg_t message;
+can_msg_t can_msg;
+MASTER_HB_t master_hb_msg = { 0 };
 
 static Uart3& u3 = Uart3::getInstance();
 static const int rx_q = 100;
@@ -32,13 +33,10 @@ void serial_init(void)
 
 	CAN_init(can1,100,10,10,NULL,NULL);
 	CAN_reset_bus(can1);
-	CAN_bypass_filter_accept_all_msgs();
-/*
-	const can_std_id_t slist[]      = { CAN_gen_sid(can1, 0x100), CAN_gen_sid(can1, 0x110),   // 2 entries
-	                                     CAN_gen_sid(can1, 0x120), CAN_gen_sid(can1, 0x130)    // 2 entries
-	};
-	CAN_setup_filter(slist, 4 , NULL, 0, NULL, 0, NULL, 0);
-*/
+	const can_std_id_t slist[]  = { CAN_gen_sid(can1, 0x020),   // Acknowledgment from the nodes that received sensor reading
+											  CAN_gen_sid(can1, 0x021) }; // Only 1 ID is expected, hence small range
+		     CAN_setup_filter(slist, 2, NULL, 0, NULL, 0, NULL, 0);
+
 }
 
 void canbus_check()
@@ -63,17 +61,42 @@ void get_compass_data(void)
 	{
 	//printf("%s\n",temp);
 
-	float x = atof(temp);
-	printf("%0.2f\n",x);
-	heading = (x *100);
+	heading = atoi(temp);
+	//printf("%0.2f\n",x);
+	//heading = x;
 	//sscanf(temp,"%f",&heading);
 	}
 	printf("%i\n",heading);
 
-	//COMPASS_Value.COMPASS_Heading = heading;
+	COMPASS_Value.COMPASS_Heading = heading;
 }
 
-void can_tx(void)
+void can_task(void)
 {
-	//dbc_encode_and_send_COMPASS_Data(&COMPASS_Value);
+	while (CAN_rx(can1, &can_msg, 0))
+	        {
+	            dbc_msg_hdr_t can_msg_hdr;
+	            can_msg_hdr.dlc = can_msg.frame_fields.data_len;
+	            can_msg_hdr.mid = can_msg.msg_id;
+	            dbc_decode_MASTER_HB(&master_hb_msg, can_msg.data.bytes, &can_msg_hdr);
+	            if(can_msg_hdr.mid == 0x20)
+	            {
+	            dbc_encode_and_send_COMPASS_Data(&COMPASS_Value);
+	            }
+	         }
+	       if(CAN_is_bus_off(can1))
+	       	 //Start the CAN bus
+	       	 CAN_reset_bus(can1);
+
+	}
+
+
+bool dbc_app_send_can_msg(uint32_t mid, uint8_t dlc, uint8_t bytes[8])
+{
+    can_msg_t can_msg1 = { 0 };
+    can_msg1.msg_id                = mid;
+    can_msg1.frame_fields.data_len = dlc;
+    memcpy(can_msg1.data.bytes, bytes, dlc);
+
+    return CAN_tx(can1, &can_msg1, 0);
 }
