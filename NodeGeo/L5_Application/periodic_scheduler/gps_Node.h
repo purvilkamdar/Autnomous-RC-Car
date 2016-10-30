@@ -28,7 +28,7 @@ typedef struct{
 void serialInit(void);
 void check_reset_canbus(void);
 
-uint32_t stringToDecimalDegree(float strDegree);
+uint32_t floatToDecimalDegree(float strDegree);
 
 void readGPS(gps_name addr, GPS_DATA *data_r);
 /*----- GPS Address and their Types of Data-----*/

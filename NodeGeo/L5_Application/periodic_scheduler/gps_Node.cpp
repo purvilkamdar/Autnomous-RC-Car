@@ -45,7 +45,7 @@ void check_reset_canbus(void)
  * Function to take in raw GPS data format DDDMM.MMMM and converts it to Decimal Degree
  * Gets called in readGPS() function after receiving GPS data
  */
-uint32_t stringToDecimalDegree(float strDegree)
+uint32_t floatToDecimalDegree(float strDegree)
 {
 	uint32_t degree;
 	float decimal_Degree;
@@ -131,8 +131,8 @@ void readGPS(gps_name addr, GPS_DATA *data_r)
 			temp_Latitude = atof(strtok(NULL, &parser));
 			strtok(NULL, &parser);
 			temp_Longitude = atof(strtok(NULL, &parser));
-			data_r->latitude = stringToDecimalDegree(temp_Latitude);
-			data_r->longitude = stringToDecimalDegree(temp_Longitude);
+			data_r->latitude = floatToDecimalDegree(temp_Latitude);
+			data_r->longitude = floatToDecimalDegree(temp_Longitude);
 
 			printf("Valid bit = %d\n", data_r->valid_bit);
 			printf("Counter =   %d\n", data_r->counter);
