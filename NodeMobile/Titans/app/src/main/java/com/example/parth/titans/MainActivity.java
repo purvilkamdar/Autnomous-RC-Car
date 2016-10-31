@@ -34,6 +34,11 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.os.AsyncTask;
+import org.json.*;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 
 import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
@@ -47,8 +52,11 @@ import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
+import android.R.color;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -77,11 +85,18 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleMap mMap;
     private TextView connectionState;
     private Button startButton;
+    boolean Marker_Set=false;
+    LatLng SU=null;
+    LatLng Destination=null;
+    Marker marker;
+    Polyline line=null;
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-
+        //polyline=new PolylineOptions();
+        //line=new Polyline();
         // Add a marker in Student Union and move the camera
-        LatLng SU = new LatLng(37.336022, -121.881344);
+        SU = new LatLng(37.336022, -121.881344);
+        //polyline.add(SU);
         mMap.addMarker(new MarkerOptions().position(SU).title("Starting position"));
         CameraUpdate location = CameraUpdateFactory.newLatLngZoom(SU,17);
         mMap.animateCamera(location);
@@ -89,7 +104,26 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener(){
             @Override
             public void onMapClick(LatLng latLng) {
-                mMap.addMarker(new MarkerOptions().position(latLng));
+                if(!Marker_Set)
+                {
+                    Destination=latLng;
+                    marker=mMap.addMarker(new MarkerOptions().position(latLng));
+                    Marker_Set=true;
+                    String url1 = getMapsApiDirectionsUrl();
+                    ReadTask downloadTask = new ReadTask();
+                    downloadTask.execute(url1);
+
+                }
+                else
+                {
+                    Destination=latLng;
+                    marker.remove();
+                    marker=mMap.addMarker(new MarkerOptions().position(latLng));
+                    String url1 = getMapsApiDirectionsUrl();
+                    ReadTask downloadTask = new ReadTask();
+                    downloadTask.execute(url1);
+
+                }
             }
 
         });
@@ -97,7 +131,109 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
-    private final BroadcastReceiver mGattUpdateReceiver = new BroadcastReceiver() {
+    private String getMapsApiDirectionsUrl() {
+        String origin_lat = Double.toString(SU.latitude);
+        String origin_long= Double.toString(SU.longitude);
+        String dest_lat = Double.toString(Destination.latitude);
+        String dest_long=Double.toString(Destination.longitude);
+        String mode = "walking";
+        String alternatives="false";
+        String url = "https://maps.googleapis.com/maps/api/directions/json?origin="+origin_lat+","+origin_long+"&destination="+dest_lat+","+dest_long+"&mode="+mode+"&alternatives="+alternatives+"&sensor=false";
+        return url;
+    }
+
+
+
+   private class ReadTask extends AsyncTask<String, Void, String> {
+
+       @Override
+       protected String doInBackground(String... url) {
+           String data = "";
+           try {
+               HttpConnection http = new HttpConnection();
+               data = http.readUrl(url[0]);
+           } catch (Exception e) {
+               Log.d("Background Task", e.toString());
+           }
+           return data;
+       }
+
+
+       @Override
+       protected void onPostExecute(String result) {
+           super.onPostExecute(result);
+           new ParserTask().execute(result);
+       }
+
+   }
+
+
+   private class ParserTask extends AsyncTask<String, Integer, List<List<HashMap<String, String>>>> {
+       @Override
+       protected List<List<HashMap<String, String>>> doInBackground(String... jsonData) {
+           JSONObject jObject;
+           List<List<HashMap<String, String>>> routes = null;
+           try {
+               jObject = new JSONObject(jsonData[0]);
+               PathJSONParser parser = new PathJSONParser();
+               routes = parser.parse(jObject);
+           } catch (Exception e) {
+               e.printStackTrace();
+           }
+           return routes;
+       }
+
+        @Override
+       protected void onPostExecute(List<List<HashMap<String, String>>> routes) {
+
+           ArrayList<LatLng> points = null;
+           PolylineOptions polyLineOptions = null;
+           // traversing through routes
+           for (int i = 0; i < routes.size(); i++) {
+               points = new ArrayList<LatLng>();
+               polyLineOptions = new PolylineOptions();
+               List<HashMap<String, String>> path = routes.get(i);
+
+               for (int j = 0; j < path.size(); j++) {
+                   HashMap<String, String> point = path.get(j);
+
+                   double lat = Double.parseDouble(point.get("lat"));
+                   double lng = Double.parseDouble(point.get("lng"));
+                   LatLng position = new LatLng(lat, lng);
+
+                   points.add(position);
+               }
+
+               polyLineOptions.addAll(points);
+               polyLineOptions.width(10);
+               polyLineOptions.color(Color.RED);
+           }
+           Log.i("Reached", "Reached");
+            if(line!=null)
+                line.remove();
+           line=mMap.addPolyline(polyLineOptions);
+
+
+       }
+   }
+
+
+
+
+
+
+
+
+
+/* End of Google Maps API related code*/
+
+
+
+
+
+
+
+        private final BroadcastReceiver mGattUpdateReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getAction();
@@ -107,7 +243,9 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 invalidateOptionsMenu();
             } else if (BluetoothLeService.ACTION_GATT_DISCONNECTED.equals(action)) {
                 connectionState.setText("Not Connected");
-                scanLeDevice(true);
+                while (BluetoothLeService.mConnectionState!=2) {
+                    scanLeDevice(true);
+                }
                 invalidateOptionsMenu();
 
             }
@@ -193,6 +331,14 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         connectionState=(TextView)findViewById(R.id.textView7);
         startButton=(Button)findViewById(R.id.button4);
         handler=new Handler();
+        new Thread(new Runnable() {
+            public void run() {
+                Log.i("TitansThread:","thread running");
+                if(btLeService!=null) {
+                    btLeService.readCustomCharacteristic();
+                }
+            }
+        }).start();
 
         // To check whether device supports BLE or not
         if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {

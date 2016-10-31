@@ -10,13 +10,6 @@
 
 #include "NodeControl.h"
 
-enum motor_steer {
-	left_full,
-	left_half,
-	center,
-	right_half,
-	right_full
-};
 
 class MotorControl {//: public NodeControl {
 public:

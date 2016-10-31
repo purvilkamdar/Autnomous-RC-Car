@@ -10,6 +10,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include "order_and_status.h"
 
 #define MAX_NAME_CHARS 50
 

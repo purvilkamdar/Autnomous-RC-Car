@@ -154,6 +154,10 @@ void period_100Hz(uint32_t count) {
 					start=0;
 				}
 		}
+
+		if(u2.putChar('0.5',0)){
+			LE.on(4);
+		}
 	//LE.toggle(3);
 }
 
