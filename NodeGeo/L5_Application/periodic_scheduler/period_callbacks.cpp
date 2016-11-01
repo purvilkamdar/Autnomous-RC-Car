@@ -40,6 +40,8 @@
 #include "can.h"
 
 GPS_DATA data_received = {0};
+const uint32_t         MASTER_HB__MIA_MS = 1000;
+const MASTER_HB_t      MASTER_HB__MIA_MSG = {0};
 
 /// This is the stack size used for each of the period tasks (1Hz, 10Hz, 100Hz, and 1000Hz)
 const uint32_t PERIOD_TASKS_STACK_SIZE_BYTES = (512 * 4);
@@ -108,6 +110,10 @@ void period_10Hz(uint32_t count)
 		if(dbc_decode_MASTER_HB(&master_hb, can_msg.data.bytes, &can_msg_hdr))
 		{
 			dbc_encode_and_send_GPS_HB(&gps_hb);
+		}
+		if(dbc_handle_mia_MASTER_HB(&master_hb,10))
+		{
+	       LD.setNumber(12);
 		}
 
 	}
