@@ -31,12 +31,13 @@ void serial_init(void)
 {
 	u3.init(compass_baudrate,rx_q,tx_q);
 
-	CAN_init(can1,100,10,10,NULL,NULL);
-	CAN_reset_bus(can1);
-	const can_std_id_t slist[]  = { CAN_gen_sid(can1, 0x020),   // Acknowledgment from the nodes that received sensor reading
+	CAN_init(can1,100,5,5,NULL,NULL);
+			  //CAN message Filter
+		      const can_std_id_t slist[]  = { CAN_gen_sid(can1, 0x020),   // Acknowledgment from the nodes that received sensor reading
 											  CAN_gen_sid(can1, 0x021) }; // Only 1 ID is expected, hence small range
 		     CAN_setup_filter(slist, 2, NULL, 0, NULL, 0, NULL, 0);
-
+			 //Start the CAN bus
+			 CAN_reset_bus(can1);
 }
 
 void canbus_check()
