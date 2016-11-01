@@ -78,7 +78,7 @@ bool period_reg_tlm(void)
 
 /*
  * Available GPS Address Types:
- * GNVTG GNGGA GNGSA GPGSV GLGSV GNGLL GNRMC
+ * GNVTG GNGGA GNGSA GPGSV GLGSV GNGLL GNRMC GPRMC
  */
 
 void period_1Hz(uint32_t count)
@@ -88,74 +88,6 @@ void period_1Hz(uint32_t count)
 
 void period_10Hz(uint32_t count)
 {
-//	LIGHT_SENSOR_t light_sensor_data = {0};
-//	can_msg_t can_msg;
-//
-//	light_sensor_data.LIGHT_SENSOR_value = LS.getPercentValue();
-//	dbc_msg_hdr_t msg_hdr = dbc_encode_LIGHT_SENSOR(can_msg.data.bytes, &light_sensor_data);
-//	can_msg.msg_id = msg_hdr.mid;
-//	can_msg.frame_fields.data_len = msg_hdr.dlc;
-//	printf("Sensor data sending out is = %d\n\n",light_sensor_data.LIGHT_SENSOR_value);
-//	printf("Message ID = %d\n",can_msg.msg_id);
-//	printf("Data = %d\n", can_msg.data.bytes[0]);
-//
-//	CAN_tx(can1, &can_msg,0);
-
-//Homeowrk assignment
-//
-//	MASTER_LIGHT_RQ_t master_light_request = {0};
-//	LIGHT_SENSOR_t light_sensor_data = {0};
-//	can_msg_t can_msg;
-//	can_msg_t can_msg_rx_from_master;
-//	can_msg_t can_msg_rx_from_sensor;
-//
-//	dbc_encode_and_send_MASTER_LIGHT_RQ(&master_light_request);
-//	printf("Master requests sent.\n");
-//	LE.toggle(2);
-//	LE.toggle(3);
-//
-//	while(CAN_rx(can2, &can_msg_rx_from_master, 0))
-//	{
-//		printf("From Sensor Side:\n");
-//		printf("Master message received.\n");
-//		dbc_msg_hdr_t can_msg_hdr_sensor;
-//		can_msg_hdr_sensor.dlc = can_msg_rx_from_master.frame_fields.data_len;
-//		can_msg_hdr_sensor.mid = can_msg_rx_from_master.msg_id;
-//
-//		if(dbc_decode_MASTER_LIGHT_RQ(&master_light_request, can_msg_rx_from_master.data.bytes, &can_msg_hdr_sensor))
-//		{
-//			light_sensor_data.LIGHT_SENSOR_value = LS.getPercentValue();
-//			dbc_msg_hdr_t msg_hdr = dbc_encode_LIGHT_SENSOR(can_msg.data.bytes, &light_sensor_data);
-//			can_msg.msg_id = msg_hdr.mid;
-//			can_msg.frame_fields.data_len = can_msg_hdr_sensor.dlc;
-//			printf("Sensor data sending out is = %d\n\n",light_sensor_data.LIGHT_SENSOR_value);
-//
-//			CAN_tx(can2, &can_msg,0);
-//		}
-//	}
-//
-//	while(CAN_rx(can1, &can_msg_rx_from_sensor, 0))
-//	{
-//		printf("From Master Side:\n");
-//		printf("Sensor message received.\n");
-//		dbc_msg_hdr_t can_msg_hdr_master;
-//		can_msg_hdr_master.dlc = can_msg_rx_from_sensor.frame_fields.data_len;
-//		can_msg_hdr_master.mid = can_msg_rx_from_sensor.msg_id;
-//
-//		dbc_decode_LIGHT_SENSOR(&light_sensor_data, can_msg_rx_from_sensor.data.bytes, &can_msg_hdr_master);
-//
-//		if(can_msg_hdr_master.mid == LIGHT_SENSOR_HDR.mid )
-//		{
-//			printf("Light sensor data received = %d\n\n", light_sensor_data.LIGHT_SENSOR_value);
-//			LD.setNumber(light_sensor_data.LIGHT_SENSOR_value);
-//		}
-//
-//	}
-
-//	if( dbc_handle_mia_LIGHT_SENSOR(&light_sensor_data, 100))
-//		LD.setNumber(LIGHT_SENSOR__MIA_MSG.LIGHT_SENSOR_value);
-
-// Home work //
 
   //Group Project Code
 	MASTER_HB_t master_hb = {};
@@ -164,7 +96,7 @@ void period_10Hz(uint32_t count)
 	can_msg_t can_msg;
 	can_msg_t can_msg2;
 
-	readGPS(GNRMC, &data_received);
+	readGPS(GPRMC, &data_received);
 
 	gps_rx_data.GPS_READOUT_valid_bit = data_received.valid_bit;
 	gps_rx_data.GPS_READOUT_read_counter = data_received.counter;
@@ -182,13 +114,6 @@ void period_10Hz(uint32_t count)
 		{
 			dbc_encode_and_send_GPS_DATA(&gps_rx_data);
 		}
-
-		/*
-		if(dbc_decode_MASTER_()
-		{
-			dbc_encode_and_send_GPS_DATA(&gps_rx_data);
-		}
-		*/
 
 	}
 

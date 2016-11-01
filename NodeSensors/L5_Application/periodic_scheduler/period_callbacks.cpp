@@ -54,8 +54,10 @@ bool dbc_app_send_can_msg(uint32_t mid, uint8_t dlc, uint8_t bytes[8])
 }
 
 SENSOR_DATA_t sonic_sensor_data;
-
 MASTER_HB_t master_hb_msg = { 0 };
+
+const uint32_t         MASTER_HB__MIA_MS = 1000;
+const MASTER_HB_t      MASTER_HB__MIA_MSG = {0};
 
 /* 21 buckets - 6.5 meters(256 inches) is the max range of sonic sensors.
  256 inches is divided into 12 inch ranges - total 21 buckets (12 * 21 ~ 252 inches) */
@@ -137,11 +139,11 @@ void sensor_fall_left(void)
 	//distance = (stop - start)/58;
 	left_distance = (stop - start)/147;
 	  int index = HashIt(left_distance);
-	      left_filter.sum[index] += left_distance;
-	      left_filter.count[index] ++;
-	      if(left_filter.count[index] > left_filter.MAX)
-	      	{left_filter.MAX = left_filter.count[index];
-	      	left_filter.INDEX = index;}
+	  left_filter.sum[index] += left_distance;
+	  left_filter.count[index] ++;
+	  if(left_filter.count[index] > left_filter.MAX)
+		{left_filter.MAX = left_filter.count[index];
+		left_filter.INDEX = index;}
 	sensor = MIDDLE;
 	}
 
@@ -156,11 +158,11 @@ void sensor_fall_middle(void)
 	//distance = (stop - start)/58;
 	middle_distance = (stop - start)/147;
 	int index = HashIt(middle_distance);
-			      middle_filter.sum[index] += middle_distance;
-			      middle_filter.count[index] ++;
-			      if(middle_filter.count[index] > middle_filter.MAX)
-			      	{middle_filter.MAX = middle_filter.count[index];
-			      	 middle_filter.INDEX = index;}
+    middle_filter.sum[index] += middle_distance;
+	middle_filter.count[index] ++;
+    if(middle_filter.count[index] > middle_filter.MAX)
+	  {middle_filter.MAX = middle_filter.count[index];
+	   middle_filter.INDEX = index;}
 	sensor = RIGHT;
 
 	}
@@ -176,11 +178,11 @@ void sensor_fall_right(void)
 	//distance = (stop - start)/58;      // In cms
 	right_distance = (stop - start)/147; //In inches
 	int index = HashIt(right_distance);
-				right_filter.sum[index] += right_distance;
-				right_filter.count[index] ++;
-				if(right_filter.count[index] > right_filter.MAX)
-					{right_filter.MAX = right_filter.count[index];
-					 right_filter.INDEX = index;}
+	right_filter.sum[index] += right_distance;
+	right_filter.count[index] ++;
+	if(right_filter.count[index] > right_filter.MAX)
+		{right_filter.MAX = right_filter.count[index];
+		 right_filter.INDEX = index;}
 	sensor = LEFT;
 	}
 
@@ -256,7 +258,6 @@ bool period_reg_tlm(void)
 
 void period_1Hz(uint32_t count)
 {
-//LD.setNumber(left_filter.filtered_val);
 
 }
 
@@ -272,8 +273,10 @@ void period_10Hz(uint32_t count)
 			sonic_sensor_data.SENSOR_middle_sensor = middle_filter.filtered_val;
 			sonic_sensor_data.SENSOR_right_sensor = right_filter.filtered_val;
 			LD.setNumber(sonic_sensor_data.SENSOR_left_sensor);
-			//Log filtered left,middle & right sensor values
-			//LOG_INFO("F %d %d %d\n",left_filter.filtered_val,middle_filter.filtered_val,right_filter.filtered_val);
+#if 0
+//Log filtered left,middle & right sensor values
+LOG_INFO("F %d %d %d\n",left_filter.filtered_val,middle_filter.filtered_val,right_filter.filtered_val);
+#endif
 			Reset_filters();
 			}
 }
@@ -297,17 +300,16 @@ void period_100Hz(uint32_t count)
             dbc_decode_MASTER_HB(&master_hb_msg, can_msg.data.bytes, &can_msg_hdr);
             if(can_msg_hdr.mid == 0x20)
             {
-            //sonic_sensors_HB.SENSOR_HEARTBEAT_cmd = 0x01;
-            //dbc_encode_and_send_SENSOR_HB(&sonic_sensors_HB);
             dbc_encode_and_send_SENSOR_DATA(&sonic_sensor_data);
             }
 
          }
 
+       if(dbc_handle_mia_MASTER_HB(&master_hb_msg,10))
+    	   LD.setNumber(0);
 
        if(CAN_is_bus_off(can1))
-       	 //Start the CAN bus
-       	 CAN_reset_bus(can1);
+       	   CAN_reset_bus(can1);
 }
 
 // 1Khz (1ms) is only run if Periodic Dispatcher was configured to run it at main():
@@ -361,8 +363,4 @@ void period_1000Hz(uint32_t count)
 			xSemaphoreGiveFromISR(Send_CAN_Msg, NULL);
 			count_100 = 0;
 			}
-
-		//Log unfiltered sensor values
-		//LOG_INFO("U %d %d %d\n",left_distance,middle_distance,right_distance);
-
 }

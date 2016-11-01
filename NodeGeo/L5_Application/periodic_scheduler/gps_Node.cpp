@@ -21,7 +21,7 @@
  */
 void serialInit(void)
 {
-	Uart3::getInstance().init(9600,128,128);
+	Uart3::getInstance().init(115200,128,0);
 	CAN_init(can1,100,5,5,NULL,NULL);
 	CAN_init(can2,100,5,5,NULL,NULL);
 	CAN_reset_bus(can1);
@@ -42,6 +42,32 @@ void check_reset_canbus(void)
 }
 
 /*
+ * Function to take in raw GPS data format DDDMM.MMMM and converts it to Decimal Degree
+ * Gets called in readGPS() function after receiving GPS data
+ */
+uint32_t floatToDecimalDegree(float strDegree)
+{
+	uint32_t degree;
+	float decimal_Degree;
+	int temp_DD;
+	float temp_MM;
+
+	//Retrieves the DDD (degree)
+	temp_DD = (int)(strDegree*0.01);
+
+	//Calculates the degree from MM.MMMM
+	temp_MM = (strDegree - ((float)temp_DD*100))/60;
+
+	//Adds DDD (degree) with the calculated degree from MM.MMM
+	decimal_Degree = (float)temp_DD + temp_MM;
+
+	//Converts float decimal_Degree into correct unint32 format. DBC file will revert it back to correct float value.
+	degree = (uint32_t)(decimal_Degree * 1000000);
+
+	return degree;
+}
+
+/*
  * This function takes in the type of GPS Address and GPS_DATA structure
  * The desired GPS data is filtered and parsed into the GPS_DATA structure
  * 		-So far, this function is only optimized to filter GNRMC gps address type
@@ -50,6 +76,7 @@ void check_reset_canbus(void)
 void readGPS(gps_name addr, GPS_DATA *data_r)
 {
 	static Uart3 &u3 = Uart3::getInstance();
+	u3.flush();
 	char data[128];
 	char addrCode[6];
 	int i = 0;
@@ -64,7 +91,9 @@ void readGPS(gps_name addr, GPS_DATA *data_r)
 	/*
 	 * Read string of GPS data into buffer data[]
 	 */
-	u3.gets(data,128,100);
+	u3.gets(data,128,0);
+
+	//printf("GPS: %s\n",data); //Print out for debugging
 
 	/*
 	 * Copy GPS Address Code from data[] into array addrCode[]
@@ -86,24 +115,29 @@ void readGPS(gps_name addr, GPS_DATA *data_r)
 				data_r->counter = 0;
 		data_r->counter++;
 
+		float temp_Latitude=0;
+		float temp_Longitude=0;
+
 		printf("\nGPS Data = %s\n",data);
 		strtok(data, &parser);
 		printf("GPS Addr Type: %s\n", addrCode);
 		printf("GPS Time Type: %s\n", strtok(NULL, &parser));
 		valid_bit = strtok(NULL, &parser);
+
 		if(*valid_bit == 'A')
 		{
 			//GPS Data is valid
 			data_r->valid_bit = 1;
-			data_r->latitude = atof(strtok(NULL, &parser));
-//			strtok(NULL, &parser);
-//			strtok(NULL, &parser);
-			data_r->longitude = atof(strtok(NULL, &parser));
+			temp_Latitude = atof(strtok(NULL, &parser));
+			strtok(NULL, &parser);
+			temp_Longitude = atof(strtok(NULL, &parser));
+			data_r->latitude = floatToDecimalDegree(temp_Latitude);
+			data_r->longitude = floatToDecimalDegree(temp_Longitude);
 
 			printf("Valid bit = %d\n", data_r->valid_bit);
 			printf("Counter =   %d\n", data_r->counter);
-			printf("Latitude =  %f\n", data_r->latitude);
-			printf("Longitude = %f\n", data_r->longitude);
+			printf("Latitude =  %lu\n", data_r->latitude);
+			printf("Longitude = %lu\n", data_r->longitude);
 		}
 		else
 			{
@@ -113,8 +147,8 @@ void readGPS(gps_name addr, GPS_DATA *data_r)
 			data_r->longitude = 0;
 			printf("Valid bit = %d\n", data_r->valid_bit);
 			printf("Counter =   %d\n", data_r->counter);
-			printf("Latitude =  %f\n", data_r->latitude);
-			printf("Longitude = %f\n", data_r->longitude);
+			printf("Latitude =  %lu\n", data_r->latitude);
+			printf("Longitude = %lu\n", data_r->longitude);
 			}
 	}
 }
