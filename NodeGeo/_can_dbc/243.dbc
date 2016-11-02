@@ -34,85 +34,40 @@ BS_:
 
 BU_: DBG MASTER GPS MOTOR SENSOR APP
 
+BO_ 1 APP_START_STOP: 1 APP
+ SG_ APP_START_STOP_cmd : 0|8@1+ (1,0) [0|0] "COMMAND" MASTER
 
-BO_ 500 DBC_TEST1: 8 IO
- SG_ DBC_TEST1_unsigned1 : 0|8@1+ (1,0) [0|0] "" DBG
- SG_ DBC_TEST1_unsigned_minmax : 8|8@1+ (1,0) [0|100] "" DBG
- SG_ DBC_TEST1_enum : 32|8@1+ (1,0) [0|0] "" DBG
- SG_ DBC_TEST1_float : 40|8@1+ (0.5,0) [0|0] "" DBG
- SG_ DBC_TEST1_float_signed : 48|16@1+ (0.001,0) [0|65.535] "" DBG
+BO_ 80 APP_ROUTE_DATA: 7 APP
+ SG_ APP_READOUT_latitude : 0|26@1+ (0.000001,0) [0|0] "" MASTER
+ SG_ APP_READOUT_longitude : 26|26@1- (0.000001,0) [0|0] "" MASTER
 
-BO_ 501 DBC_TEST2: 8 IO
- SG_ DBC_TEST2_real_signed1 : 6|12@1- (1,0) [0|0] "" DBG
- SG_ DBC_TEST2_real_signed2 : 18|18@1- (1,0) [0|0] "" DBG
- SG_ DBC_TEST2_signed : 36|8@1+ (1,-128) [0|0] "" DBG
- SG_ DBC_TEST2_signed_minmax : 44|16@1+ (1,-32768) [-32768|32767] "" DBG
-
-BO_ 502 DBC_TEST3: 8 IO
- SG_ DBC_TEST3_real_signed1 : 2|4@1- (1,-5) [0|0] "" DBG
- SG_ DBC_TEST3_real_signed2 : 8|8@1- (1,4) [0|0] "" DBG
-
-BO_ 100 DRIVER_HEARTBEAT: 1 DRIVER
- SG_ DRIVER_HEARTBEAT_cmd : 0|8@1+ (1,0) [0|0] "" SENSOR,MOTOR
-
-BO_ 101 MOTOR_CMD: 1 DRIVER
- SG_ MOTOR_CMD_steer : 0|4@1+ (1,-5) [-5|5] "" MOTOR
- SG_ MOTOR_CMD_drive : 4|4@1+ (1,0) [0|9] "" MOTOR
-
-BO_ 400 MOTOR_STATUS: 3 MOTOR
- SG_ MOTOR_STATUS_wheel_error : 0|1@1+ (1,0) [0|0] "" DRIVER,IO
- SG_ MOTOR_STATUS_speed_kph : 8|16@1+ (0.001,0) [0|0] "kph" DRIVER,IO
  
-BO_ 32 MASTER_HB: 1 MASTER 
- SG_ MASTER_HEARTBEAT_cmd : 0|8@1+ (1,0) [0|0] "" SENSOR,MOTOR,GPS,APP
+BO_ 16 SENSOR_DATA: 3 SENSOR 
+ SG_ SENSOR_left_sensor : 0|8@1+ (1,0) [0|0] "Inches" MASTER,APP 
+ SG_ SENSOR_middle_sensor : 8|8@1+ (1,0) [0|0] "Inches" MASTER,APP 
+ SG_ SENSOR_right_sensor : 16|8@1+ (1,0) [0|0] "Inches" MASTER,APP 
+
+BO_ 32 MASTER_HB: 2 MASTER 
+ SG_ MASTER_SPEED_cmd : 0|8@1+ (1,0) [0|0] "" SENSOR,MOTOR,GPS,APP
+ SG_ MASTER_STEER_cmd : 8|8@1+ (1,0) [0|0] "" SENSOR,MOTOR,GPS,APP
  
-BO_ 16 SENSOR_HB: 1 SENSOR 
- SG_ SENSOR_HEARTBEAT_cmd : 0|8@1+ (1,0) [0|0] "" MASTER
+BO_ 65 GPS_Data: 8 GPS
+ SG_ GPS_READOUT_valid_bit : 0|1@1+ (1,0) [0|1] "" MASTER,MOTOR,APP,MOTOR
+ SG_ GPS_READOUT_read_counter : 1|11@1+ (1,0) [0|2000] "" MASTER,MOTOR,APP
+ SG_ GPS_READOUT_latitude : 12|26@1+ (0.000001,0) [0|0] "" MASTER,MOTOR,APP
+ SG_ GPS_READOUT_longitude : 38|26@1- (0.000001,0) [0|0] "" MASTER,MOTOR,APP
 
-BO_ 48 MOTOR_HB: 1 MOTOR 
- SG_ MOTOR_HEARTBEAT_cmd : 0|8@1+ (1,0) [0|0] "" MASTER
+BO_ 66 COMPASS_Data: 2 GPS
+ SG_ COMPASS_Heading : 0|9@1+ (1,0) [0|0] "DEGREE" MASTER,APP,MOTOR 
  
-BO_ 64 GPS_HB: 1 GPS 
- SG_ GPS_HEARTBEAT_cmd : 0|8@1+ (1,0) [0|0] "" MASTER
+BO_ 48 MOTOR_STATUS: 2 MOTOR
+ SG_ MOTOR_STATUS_speed_mph : 0|16@1+ (0.001,0) [0|0] "mph" MASTER,APP
  
-BO_ 65 GPS_DATA: 8 GPS
- SG_ GPS_READOUT_valid_bit : 0|1@1+ (1,0) [0|1] "" MASTER,MOTOR
- SG_ GPS_READOUT_read_counter : 1|11@1+ (1,0) [0|2000] "" MASTER,MOTOR
- SG_ GPS_READOUT_latitude : 12|26@1+ (0.000001,0) [0|0] "" MASTER,MOTOR
- SG_ GPS_READOUT_longitude : 38|26@1- (0.000001,0) [0|0] "" MASTER,MOTOR
-
-BO_ 80 APP_HB: 1 APP 
- SG_ APP_HEARTBEAT_cmd : 0|8@1+ (1,0) [0|0] "" MASTER 
- 
-
-BO_ 200 SENSOR_SONARS: 8 SENSOR
- SG_ SENSOR_SONARS_mux M : 0|4@1+ (1,0) [0|0] "" DRIVER,IO
- SG_ SENSOR_SONARS_err_count : 4|12@1+ (1,0) [0|0] "" DRIVER,IO
- SG_ SENSOR_SONARS_left m0 : 16|12@1+ (0.1,0) [0|0] "" DRIVER,IO
- SG_ SENSOR_SONARS_middle m0 : 28|12@1+ (0.1,0) [0|0] "" DRIVER,IO
- SG_ SENSOR_SONARS_right m0 : 40|12@1+ (0.1,0) [0|0] "" DRIVER,IO
- SG_ SENSOR_SONARS_rear m0 : 52|12@1+ (0.1,0) [0|0] "" DRIVER,IO
- SG_ SENSOR_SONARS_no_filt_left m1 : 16|12@1+ (0.1,0) [0|0] "" DBG
- SG_ SENSOR_SONARS_no_filt_middle m1 : 28|12@1+ (0.1,0) [0|0] "" DBG
- SG_ SENSOR_SONARS_no_filt_right m1 : 40|12@1+ (0.1,0) [0|0] "" DBG
- SG_ SENSOR_SONARS_no_filt_rear m1 : 52|12@1+ (0.1,0) [0|0] "" DBG
-
-BO_ 800 MASTER_LIGHT_RQ: 1 MASTER 
- SG_ MASTER_HEARTBEAT_cmd : 0|8@1+ (1,0) [0|0] "" SENSOR
-
-BO_ 801 LIGHT_SENSOR: 1 SENSOR
- SG_ LIGHT_SENSOR_value : 0|8@1+ (1,0) [0|0] "light intensity" MASTER
-
-BO_ 503 DBC_TEST4: 8 IO
- SG_ DBC_TEST4_real_signed1 : 0|32@1- (1,0) [0|0] "" DBG
- SG_ DBC_TEST4_real_signed2 : 32|16@1- (1,0) [-32768|32767] "" DBG
- SG_ DBC_TEST4_real_overflow : 48|16@1+ (1,0) [0|0] "" DBG
-
-
-
-CM_ BU_ DRIVER "The driver controller driving the car";
+CM_ BU_ MASTER "The master controller driving the car";
 CM_ BU_ MOTOR "The motor controller of the car";
 CM_ BU_ SENSOR "The sensor controller of the car";
+CM_ BU_ APP "The communication bridge controller of car";
+CM_ BU_ GPS "GPS and compass controller of the car";
 CM_ BO_ 100 "Sync message used to synchronize the controllers";
 
 BA_DEF_ "BusType" STRING ;
@@ -123,16 +78,8 @@ BA_DEF_DEF_ "BusType" "CAN";
 BA_DEF_DEF_ "FieldType" "";
 BA_DEF_DEF_ "GenMsgCycleTime" 0;
 
-BA_ "GenMsgCycleTime" BO_ 500 100;
-BA_ "GenMsgCycleTime" BO_ 100 1000;
-BA_ "GenMsgCycleTime" BO_ 101 100;
-BA_ "GenMsgCycleTime" BO_ 400 100;
-BA_ "GenMsgCycleTime" BO_ 200 100;
-BA_ "FieldType" SG_ 500 DBC_TEST1_enum "DBC_TEST1_enum";
-BA_ "FieldType" SG_ 100 DRIVER_HEARTBEAT_cmd "DRIVER_HEARTBEAT_cmd";
-
-
-VAL_ 500 DBC_TEST1_enum 2 "DBC_TEST1_enum_val_two" 1 "DBC_TEST1_enum_val_one" ;
-VAL_ 100 DRIVER_HEARTBEAT_cmd 2 "DRIVER_HEARTBEAT_cmd_REBOOT" 1 "DRIVER_HEARTBEAT_cmd_SYNC" 0 "DRIVER_HEARTBEAT_cmd_NOOP" ;
-
-
+BA_ "GenMsgCycleTime" BO_ 32 100;
+BA_ "GenMsgCycleTime" BO_ 16 100;
+BA_ "GenMsgCycleTime" BO_ 48 100;
+BA_ "GenMsgCycleTime" BO_ 65 100;
+BA_ "GenMsgCycleTime" BO_ 66 100;

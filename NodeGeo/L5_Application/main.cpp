@@ -25,6 +25,10 @@
  */
 #include "tasks.hpp"
 #include "examples/examples.hpp"
+#include <stdio.h>
+#include "acceleration_sensor.hpp"
+#include "io.hpp"
+
 
 /**
  * The main() creates tasks or "threads".  See the documentation of scheduler_task class at scheduler_task.hpp
@@ -40,8 +44,129 @@
  *        In either case, you should avoid using this bus or interfacing to external components because
  *        there is no semaphore configured for this bus and it should be used exclusively by nordic wireless.
  */
+
+
+/// IDs used for getSharedObject() and addSharedObject()
+typedef enum {
+   shared_SensorQueueId,
+} sharedHandleId_t;
+
+/// Orientation type enumeration
+typedef enum {
+    invalid = 0,
+    left = 1,
+    right = 2,
+	up = 3,
+    down = 4,
+} orientation_t;
+
+class orient_producer : public scheduler_task
+{
+    public:
+        orient_producer(uint8_t priority) : scheduler_task("compute", 2048, priority)
+        {
+            /* We save the queue handle by using addSharedObject() */
+
+            QueueHandle_t my_queue = xQueueCreate(1, sizeof(orientation_t));
+            addSharedObject(shared_SensorQueueId, my_queue);
+        }
+
+        bool run(void *p)
+        {
+        	 orientation_t orientation = invalid;
+            /* Compute orientation here, and send it to the queue once a second */
+        	int16_t x,y;
+        	Acceleration_Sensor &sensor = Acceleration_Sensor::getInstance();
+
+        	sensor.init();
+
+        	x = sensor.getX();
+        	y = sensor.getY();
+
+        	if(y<-200)
+        		orientation = down;
+        	else if (y>200)
+        		orientation = up;
+        	else if(x<-200)
+        		orientation = right;
+        	else if (x>200)
+        		orientation = left;
+        	else
+        		orientation = invalid;
+
+        	printf("Preparing to send Orientation to queue...\n");
+
+            xQueueSend(getSharedObject(shared_SensorQueueId), &orientation, portMAX_DELAY);
+            //portMAX_DELAY
+
+            printf("Orientation sent to queue!\n");
+
+            vTaskDelay(1000);
+            return true;
+        }
+};
+
+class orient_consumer : public scheduler_task
+{
+    public:
+        orient_consumer (uint8_t priority) : scheduler_task("process", 2048, priority)
+        {
+        	/* Creates a que*/
+        	QueueHandle_t my_queue = xQueueCreate(1, sizeof(orientation_t));
+        	addSharedObject(shared_SensorQueueId, my_queue);
+        }
+
+        bool run(void *p)
+        {
+            /* We first get the queue handle the other task added using addSharedObject() */
+            orientation_t orientation = invalid;
+            QueueHandle_t qid = getSharedObject(shared_SensorQueueId);
+
+            /* Sleep the task forever until an item is available in the queue */
+            if (xQueueReceive(qid, &orientation, 0))
+            {
+            	LE.setAll(0);
+
+            	if(orientation == left)
+            	{
+            		printf("Received! Orientation is: left\n\n");
+                    LE.on(1);
+            	}
+            	else if(orientation == right)
+            	{
+            		printf("Received! Orientation is: right\n\n");
+            		LE.on(2);
+            	}
+            	else if(orientation == up)
+            	{
+            		printf("Received! Orientation is: up\n\n");
+            		LE.on(3);
+            	}
+            	else if(orientation == down)
+            	{
+            		printf("Received! Orientation is: down\n\n");
+            		LE.on(4);
+            	}
+            	else
+            		printf("Received! Orientation is: invalid\n\n");
+
+            }
+
+            return true;
+        }
+};
+
 int main(void)
 {
+
+#if 0
+    scheduler_add_task(new orient_producer(PRIORITY_LOW));
+#endif
+
+#if 0
+    scheduler_add_task(new orient_consumer(PRIORITY_LOW));
+#endif
+
     /**
      * A few basic tasks for this bare-bone system :
      *      1.  Terminal task provides gateway to interact with the board through UART terminal.

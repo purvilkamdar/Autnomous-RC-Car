@@ -21,14 +21,16 @@ const char * const gps_addr[] = { GPS };
 typedef struct{
 	int valid_bit;
 	uint16_t counter;
-	uint32_t latitude;
-	uint32_t longitude;
+	float latitude;
+	float longitude;
 }GPS_DATA;
 
 void serialInit(void);
 void check_reset_canbus(void);
 
 uint32_t floatToDecimalDegree(float strDegree);
+
+double angleOfApproach(double start_lat, double start_long, double destination_lat, double destination_long, double current_lat, double current_long);
 
 void readGPS(gps_name addr, GPS_DATA *data_r);
 /*----- GPS Address and their Types of Data-----*/
