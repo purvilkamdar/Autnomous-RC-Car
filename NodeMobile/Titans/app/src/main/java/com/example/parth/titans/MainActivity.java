@@ -85,6 +85,8 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleMap mMap;
     private TextView connectionState;
     private Button startButton;
+    private boolean connectedFlag;
+
     boolean Marker_Set=false;
     LatLng SU=null;
     LatLng Destination=null;
@@ -240,10 +242,17 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             if (BluetoothLeService.ACTION_GATT_CONNECTED.equals(action)) {
                 Log.i("TITANS","Connected");
                 connectionState.setText("Connected");
+                connectedFlag=true;
                 invalidateOptionsMenu();
             } else if (BluetoothLeService.ACTION_GATT_DISCONNECTED.equals(action)) {
                 connectionState.setText("Not Connected");
-                while (BluetoothLeService.mConnectionState!=2) {
+                connectedFlag=false;
+                while (!connectedFlag) {
+                    try {
+                        wait(2000);
+                    } catch (Exception e) {
+
+                    }
                     scanLeDevice(true);
                 }
                 invalidateOptionsMenu();
@@ -324,6 +333,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        connectedFlag=false;
         setContentView(R.layout.activity_main);
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -436,6 +446,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     public void onStart() {
         super.onStart();
 
+      
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client.connect();
@@ -445,8 +456,9 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onStop() {
         super.onStop();
-        //btServiceConnection=null;
-        unbindService(btServiceConnection);
+        if(connectedFlag){
+            unbindService(btServiceConnection);
+        }
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         AppIndex.AppIndexApi.end(client, getIndexApiAction());
