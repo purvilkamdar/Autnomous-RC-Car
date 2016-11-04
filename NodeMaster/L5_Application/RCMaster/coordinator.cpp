@@ -9,15 +9,25 @@
 #include "../_can_dbc/generated_can.h"
 #include "can.h"
 #include "io.hpp"
-const uint32_t            SENSOR_HB__MIA_MS = 3000;
-const SENSOR_DATA_t         SENSOR_DATA__MIA_MSG = { 8 };
-
-
+const uint32_t            	SENSOR_DATA__MIA_MS = 3000;
+const SENSOR_DATA_t         SENSOR_DATA__MIA_MSG = { 125,125,125 };
+const uint32_t              APP_START_STOP__MIA_MS = 3000;
+const APP_START_STOP_t      APP_START_STOP__MIA_MSG = { 0 };
+const uint32_t              APP_ROUTE_DATA__MIA_MS=3000;
+const APP_ROUTE_DATA_t      APP_ROUTE_DATA__MIA_MSG = {0.000,0.000};
+const uint32_t              GPS_Data__MIA_MS = 3000;
+const GPS_Data_t            GPS_Data__MIA_MSG = {0};
+const uint32_t              COMPASS_Data__MIA_MS = 3000;
+const COMPASS_Data_t        COMPASS_Data__MIA_MSG = {0};
+const uint32_t              MOTOR_STATUS__MIA_MS=3000;
+const MOTOR_STATUS_t        MOTOR_STATUS__MIA_MSG = {0};
 // For the sake of example, we use global data storage for messages that we receive
 SENSOR_DATA_t sensor_can_msg = { 0 };
 MOTOR_STATUS_t motor_can_msg = { 0 };
 GPS_Data_t gps_can_msg = { 0 };
 APP_START_STOP_t app_can_msg = { 0 };
+APP_ROUTE_DATA_t app_route_msg = { 0 };
+COMPASS_Data_t compass_msg = { 0 };
 
 coordinator::coordinator() {
 	// TODO Auto-generated constructor stub
@@ -110,6 +120,7 @@ bool coordinator::getNodeStatus(){
                  status.app_cmd = app_can_msg.APP_START_STOP_cmd;
 
             	 break;
+
              default:
             	 printf("Received unknown message ID:%d\n", can_msg_hdr.mid);
             	 break;
@@ -117,6 +128,12 @@ bool coordinator::getNodeStatus(){
 
 
        }
+    dbc_handle_mia_APP_START_STOP(&app_can_msg,100);
+    dbc_handle_mia_SENSOR_DATA(&sensor_can_msg,100);
+    dbc_handle_mia_MOTOR_STATUS(&motor_can_msg,100);
+    dbc_handle_mia_APP_ROUTE_DATA(&app_route_msg,100);
+    dbc_handle_mia_COMPASS_Data(&compass_msg,100);
+    dbc_handle_mia_GPS_Data(&gps_can_msg,100);
 
 	return (node_status_counter > 0);// status_received;   TODO restore testing only
 }
@@ -130,8 +147,8 @@ void coordinator::processAndSendOrder(status_t& status, order_t& order){
 	itsSensorNode->check_sensors(status);
 	itsGeoNode->checkHeading(status);
     itsTrajectoryEngine->run_trajectory(status, order);
-    printf("Steer Order : %d\n",order.steer_order);
-    printf("Speed Order : %d\n",order.speed_order);
+   /* printf("Steer Order : %d\n",order.steer_order);
+    printf("Speed Order : %d\n",order.speed_order);*/
 }
 coordinator::~coordinator() {
 	// TODO Auto-generated destructor stub
