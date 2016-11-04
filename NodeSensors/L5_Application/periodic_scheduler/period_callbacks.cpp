@@ -33,158 +33,13 @@
 #include "periodic_callback.h"
 #include "utilities.h"
 #include "stdio.h"
-#include "eint.h"
-#include "gpio.hpp"
 #include "string.h"
 #include "lpc_sys.h"
-#include "can.h"
 #include "file_logger.h"
 #include "generated_can.h"
+#include "../source/sensors/sensors.h"
 
 
-
-bool dbc_app_send_can_msg(uint32_t mid, uint8_t dlc, uint8_t bytes[8])
-{
-    can_msg_t can_msg = { 0 };
-    can_msg.msg_id                = mid;
-    can_msg.frame_fields.data_len = dlc;
-    memcpy(can_msg.data.bytes, bytes, dlc);
-
-    return CAN_tx(can1, &can_msg, 0);
-}
-
-SENSOR_DATA_t sonic_sensor_data;
-MASTER_HB_t master_hb_msg = { 0 };
-
-const uint32_t         MASTER_HB__MIA_MS = 1000;
-const MASTER_HB_t      MASTER_HB__MIA_MSG = {0};
-
-/* 21 buckets - 6.5 meters(256 inches) is the max range of sonic sensors.
- 256 inches is divided into 12 inch ranges - total 21 buckets (12 * 21 ~ 252 inches) */
-#define BUCKETS 21
-
-/* GLOBALS */
-int start = 0;
-int stop = 0;
-int left_distance = 0;
-int middle_distance = 0;
-int right_distance = 0;
-int distance = 0;
-
-GPIO sensor_trigger_left(P2_3);
-GPIO sensor_trigger_middle(P2_4);
-GPIO sensor_trigger_right(P2_5);
-
-static SemaphoreHandle_t Send_CAN_Msg = 0; //semaphore variable
-
-typedef struct ModeFilter
-{
-int sum[BUCKETS];
-int count[BUCKETS];
-int MAX;
-int INDEX;
-int filtered_val;
-}ModeFilter;
-
-enum SENSOR{LEFT,MIDDLE,RIGHT,WAIT};
-SENSOR sensor;
-
-ModeFilter left_filter;
-ModeFilter middle_filter;
-ModeFilter right_filter;
-
-int HashIt(int Val)
-{
-	if(Val/12 > BUCKETS)   // 12 inches = 1 foot
-		return BUCKETS;
-	else
-	return (Val / 12);
-}
-
-void Reset_filters()
-{
-for(int i=0;i<BUCKETS;i++)
-{
-left_filter.sum[i] = 0;
-middle_filter.sum[i] = 0;
-right_filter.sum[i] = 0;
-
-left_filter.count[i] = 0;
-middle_filter.count[i] = 0;
-right_filter.count[i] = 0;
-
-left_filter.MAX = 0;
-middle_filter.MAX = 0;
-right_filter.MAX = 0;
-}
-}
-
-void ApplyFilter()
-{
-
-	left_filter.filtered_val   =  left_filter.sum[left_filter.INDEX]/left_filter.count[left_filter.INDEX];
-	middle_filter.filtered_val =  middle_filter.sum[middle_filter.INDEX]/middle_filter.count[middle_filter.INDEX];
-	right_filter.filtered_val  =  right_filter.sum[right_filter.INDEX]/right_filter.count[right_filter.INDEX];
-
-}
-
-void sensor_rise_left(void)
-	{
-	 start = sys_get_uptime_us();
-	}
-
-void sensor_fall_left(void)
-	{
-	stop = sys_get_uptime_us();
-	//distance = (stop - start)/58;
-	left_distance = (stop - start)/147;
-	  int index = HashIt(left_distance);
-	  left_filter.sum[index] += left_distance;
-	  left_filter.count[index] ++;
-	  if(left_filter.count[index] > left_filter.MAX)
-		{left_filter.MAX = left_filter.count[index];
-		left_filter.INDEX = index;}
-	sensor = MIDDLE;
-	}
-
-void sensor_rise_middle(void)
-	{
-	 start = sys_get_uptime_us();
-	}
-
-void sensor_fall_middle(void)
-	{
-	stop = sys_get_uptime_us();
-	//distance = (stop - start)/58;
-	middle_distance = (stop - start)/147;
-	int index = HashIt(middle_distance);
-    middle_filter.sum[index] += middle_distance;
-	middle_filter.count[index] ++;
-    if(middle_filter.count[index] > middle_filter.MAX)
-	  {middle_filter.MAX = middle_filter.count[index];
-	   middle_filter.INDEX = index;}
-	sensor = RIGHT;
-
-	}
-
-void sensor_rise_right(void)
-	{
-	 start = sys_get_uptime_us();
-	}
-
-void sensor_fall_right(void)
-	{
-	stop = sys_get_uptime_us();
-	//distance = (stop - start)/58;      // In cms
-	right_distance = (stop - start)/147; //In inches
-	int index = HashIt(right_distance);
-	right_filter.sum[index] += right_distance;
-	right_filter.count[index] ++;
-	if(right_filter.count[index] > right_filter.MAX)
-		{right_filter.MAX = right_filter.count[index];
-		 right_filter.INDEX = index;}
-	sensor = LEFT;
-	}
 
 /// This is the stack size used for each of the period tasks (1Hz, 10Hz, 100Hz, and 1000Hz)
 const uint32_t PERIOD_TASKS_STACK_SIZE_BYTES = (512 * 4);
@@ -200,46 +55,7 @@ const uint32_t PERIOD_DISPATCHER_TASK_STACK_SIZE_BYTES = (512 * 3);
 /// Called once before the RTOS is started, this is a good place to initialize things once
 bool period_init(void)
 {
-	   /* CAN INIT */
-
-	      //can1 init at a baud rate of 250
-	      CAN_init(can1,100,5,5,NULL,NULL);
-
-		  //CAN message Filter
-	      const can_std_id_t slist[]  = { CAN_gen_sid(can1, 0x020),   // Acknowledgment from the nodes that received sensor reading
-										  CAN_gen_sid(can1, 0x021) }; // Only 1 ID is expected, hence small range
-
-	     CAN_setup_filter(slist, 2, NULL, 0, NULL, 0, NULL, 0);
-
-		 //Start the CAN bus
-		 CAN_reset_bus(can1);
-
-
-	      vSemaphoreCreateBinary(Send_CAN_Msg);
-
-	      sensor_trigger_left.setAsOutput();
-	      sensor_trigger_left.setLow();
-	      sensor_trigger_middle.setAsOutput();
-	      sensor_trigger_middle.setLow();
-	      sensor_trigger_right.setAsOutput();
-	      sensor_trigger_right.setLow();
-
-
-		  const uint8_t port2_0 = 0;
-	      eint3_enable_port2(port2_0, eint_rising_edge, sensor_rise_left);
-	      eint3_enable_port2(port2_0, eint_falling_edge, sensor_fall_left);
-
-		  const uint8_t port2_1 = 1;
-	      eint3_enable_port2(port2_1, eint_rising_edge, sensor_rise_middle);
-	      eint3_enable_port2(port2_1, eint_falling_edge, sensor_fall_middle);
-
-		  const uint8_t port2_2 = 2;
-	      eint3_enable_port2(port2_2, eint_rising_edge, sensor_rise_right);
-	      eint3_enable_port2(port2_2, eint_falling_edge, sensor_fall_right);
-
-	      //Trigger the left sensor first
-	      sensor = LEFT;
-
+	init_all();
 	return true; // Must return true upon success
 }
 
@@ -273,12 +89,16 @@ void period_10Hz(uint32_t count)
 			sonic_sensor_data.SENSOR_middle_sensor = middle_filter.filtered_val;
 			sonic_sensor_data.SENSOR_right_sensor = right_filter.filtered_val;
 			LD.setNumber(sonic_sensor_data.SENSOR_left_sensor);
+			is_valid();
 #if 0
 //Log filtered left,middle & right sensor values
 LOG_INFO("F %d %d %d\n",left_filter.filtered_val,middle_filter.filtered_val,right_filter.filtered_val);
 #endif
 			Reset_filters();
 			}
+
+    if(dbc_handle_mia_MASTER_HB(&master_hb_msg,100))
+    	LE.toggle(1);
 }
 
 
