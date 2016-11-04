@@ -1,6 +1,8 @@
 #ifndef ORDER_AND_STATUS_H
 #define ORDER_AND_STATUS_H
 
+#define NO_APP
+
 enum motor_steer {
 	left_full,
 	left_half,
@@ -18,7 +20,10 @@ enum motor_speed {
 
 enum app_cmd{
 	stop,
-	drive
+	drive,
+	drive2,
+	drive3,
+	reverse
 };
 
 
@@ -33,15 +38,17 @@ typedef struct status_t {
 	int    right_state;
 	int    left_state;
 	int    center_state;
+	bool   leftCloser;
+	bool   rightCloser;
 	int    heading_state;
 	int    motor_speed;
-};
+}status_t;
 
 
 typedef struct order_t {
 	int speed_order;
 	int steer_order;
-};
+}order_t;
 
 
 #endif

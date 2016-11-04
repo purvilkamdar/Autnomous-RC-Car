@@ -13,16 +13,17 @@
 #include "SensorsControl.h"
 
 enum trajectoryStates {
-	idle,
-	forward,
-	soft_right,
-	hard_right,
-	soft_left,
-	hard_left,
-	soft_right_center,
-	hard_right_center,
-	soft_left_center,
-	hard_left_center
+	idle,                // 0
+	forward,             //1
+	backward,             //2
+	soft_right,             //3
+	hard_right,             //4
+	soft_left,             //5
+	hard_left,             //6
+	soft_right_center,             //7
+	hard_right_center,             //8
+	soft_left_center,             //9
+	hard_left_center             //0
 };
 
 
@@ -42,6 +43,7 @@ private:
 	int med_sensor_dist;
 	int max_heading_error;
 	int med_heading_error;
+	void checkStop(status_t status);
 };
 
 #endif /* L5_APPLICATION_RCMASTER_TRAJECTORYENGINE_H_ */

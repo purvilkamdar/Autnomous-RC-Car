@@ -29,5 +29,26 @@ void GeoControl::set_thresholds (int max_heading_error_, int med_heading_error_)
 
 void GeoControl::checkHeading(status_t& status){
     //TODO check real heading error here
-	status.heading_state = on_target;
+	//int heading_error =  wayPointdirection - status.compass_heading;
+	int heading_error =  0;
+
+	if(heading_error < ((-1)*max_heading_error)){
+		status.heading_state = way_off_to_left;
+	}
+	else if(heading_error <((-1)*med_heading_error ))
+	{
+       status.heading_state = off_to_left;
+	}
+	else if(heading_error > max_heading_error){
+		status.heading_state = way_off_to_right;
+	}
+	else if(heading_error  > med_heading_error)
+	{
+       status.heading_state = off_to_right;
+	} else {
+		status.heading_state = on_target;
+	}
+
+
+
 }
