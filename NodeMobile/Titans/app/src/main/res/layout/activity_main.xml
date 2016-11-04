@@ -151,7 +151,7 @@
         android:id="@+id/progressBar5" />
 
     <TextView
-        android:text="Not Connected"
+        android:text=""
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
