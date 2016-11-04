@@ -87,6 +87,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleMap mMap;
     private TextView connectionState;
     private Button startButton;
+    private Button connectButton;
     private boolean onceConnectedFlag;
 
     private AlertDialog.Builder builder;
@@ -247,24 +248,23 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             Log.i("Parth","In Rec...");
             if(btLeService!=null){
                 Log.i("Parth","In thread ...");
-                if(btLeService.getConnectionState()==0)
+                if(btLeService.getConnectionState()==0) {
                     updateConnectionState("Disconnected");
-                if(btLeService.getConnectionState()==1)
+                    connectButton.setText("Connect");
+                }
+                if(btLeService.getConnectionState()==1) {
                     updateConnectionState("Connecting");
-                if(btLeService.getConnectionState()==2)
+                }
+                if(btLeService.getConnectionState()==2) {
                     updateConnectionState("Connected");
+                    connectButton.setText("Disconnect");
+                }
 
             }
             if (BluetoothLeService.ACTION_GATT_CONNECTED.equals(action)) {
                 Log.i("TITANS","Connected");
                 //updateConnectionState("Connected");
                 onceConnectedFlag=true;
-
-            } else if (BluetoothLeService.ACTION_GATT_DISCONNECTED.equals(action)) {
-                //updateConnectionState("Not Connected");
-                //connectedFlag=false;
-                //scanLeDevice(true);
-
 
             }
         }
@@ -353,6 +353,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
         connectionState=(TextView)findViewById(R.id.textView7);
         startButton=(Button)findViewById(R.id.button4);
+        connectButton=(Button)findViewById(R.id.button2);
         handler=new Handler();
 
         // To check whether device supports BLE or not
@@ -425,6 +426,21 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
 
+        connectButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(btLeService!=null){
+                    if(btLeService.getConnectionState()==0){
+                        btLeService.connect(bleChip.getAddress());
+                    }
+                    if(btLeService.getConnectionState()==2){
+                        if(onceConnectedFlag){
+                            btLeService.disconnect();
+                        }
+                    }
+                }
+            }
+        });
 
     }
 
