@@ -50,6 +50,10 @@ Uart2 &u2 = Uart2::getInstance();
 char msg[10];
 bool start=0;
 bool stop=0;
+extern const uint32_t MASTER_HB__MIA_MS=3000;
+extern const MASTER_HB_t MASTER_HB__MIA_MSG={0};
+MASTER_HB_t heartbeat={0};
+can_msg_t can_msg;
 bool dbc_app_send_can_msg(uint32_t mid, uint8_t dlc, uint8_t bytes[8])
 {
     can_msg_t can_msg = { 0 };
@@ -104,8 +108,8 @@ void period_1Hz(uint32_t count) {
 	}
 
 void period_10Hz(uint32_t count) {
-	MASTER_HB_t heartbeat={0};
-	can_msg_t can_msg;
+
+
 	APP_START_STOP_t start_cmd = { 0 };
 	if(start==1){
 		start_cmd.APP_START_STOP_cmd=1;
@@ -116,10 +120,11 @@ void period_10Hz(uint32_t count) {
 
 	}
 
-	//dbc_encode_and_send_APP_START_STOP(&start_cmd);
+
 
 	while(CAN_rx(can1, &can_msg,0))
 	    {
+			LE.off(4);
 	        dbc_msg_hdr_t can_msg_hdr;
 	        can_msg_hdr.dlc = can_msg.frame_fields.data_len;
 	        can_msg_hdr.mid = can_msg.msg_id;
@@ -132,9 +137,10 @@ void period_10Hz(uint32_t count) {
 
 
 	    }
-	// This function will encode the CAN data bytes, and send the CAN msg using dbc_app_send_can_msg()
+	if(dbc_handle_mia_MASTER_HB(&heartbeat,100)){
+		LE.on(4);
+	}
 
-	//LE.toggle(2);
 }
 
 void period_100Hz(uint32_t count) {
@@ -155,9 +161,7 @@ void period_100Hz(uint32_t count) {
 				}
 		}
 
-		if(u2.putChar('0.5',0)){
-			LE.on(4);
-		}
+
 	//LE.toggle(3);
 }
 
