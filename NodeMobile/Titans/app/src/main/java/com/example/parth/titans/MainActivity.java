@@ -89,6 +89,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     private Button startButton;
     private Button connectButton;
     private boolean onceConnectedFlag;
+    private boolean goingFlag;
 
     private AlertDialog.Builder builder;
     private AlertDialog dialog;
@@ -350,7 +351,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         builder=new AlertDialog.Builder(this);
 
 
-
+        goingFlag=false;
         connectionState=(TextView)findViewById(R.id.textView7);
         startButton=(Button)findViewById(R.id.button4);
         connectButton=(Button)findViewById(R.id.button2);
@@ -401,12 +402,14 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                             btLeService.writeCustomCharacteristic(1);
                             Log.i("TITANS:", "Write done");
                             startButton.setText("STOP");
+                            goingFlag=true;
                         }
                     } else {
                         if (btLeService != null) {
                             btLeService.writeCustomCharacteristic(0);
                             Log.i("TITANS:", "Write done");
                             startButton.setText("START");
+                            goingFlag=true;
                         }
                     }
                 }
