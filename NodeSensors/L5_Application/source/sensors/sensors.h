@@ -40,6 +40,7 @@ SD left,middle,right;
 
 SENSOR_DATA_t sonic_sensor_data;
 MASTER_HB_t master_hb_msg = { 0 };
+SENSOR_DBG_t sensor_dbg;
 
 const uint32_t         MASTER_HB__MIA_MS = 1000;
 const MASTER_HB_t      MASTER_HB__MIA_MSG = {0};
@@ -222,17 +223,17 @@ void is_valid()
 	middle.variance /= 5;
 	right.variance /= 5;
 
-	if(sqrt(left.variance)/left.mean > 0.5)
+	if(sqrt(left.variance)/left.mean > 0.7)
 		left_invalid = 1;
 	else
 		left_invalid = 0;
 
-	if(sqrt(middle.variance)/middle.mean > 0.5)
+	if(sqrt(middle.variance)/middle.mean > 0.7)
 		middle_invalid = 1;
 	else
 		middle_invalid = 0;
 
-	if(sqrt(right.variance)/right.mean > 0.5)
+	if(sqrt(right.variance)/right.mean > 0.7)
 		right_invalid = 1;
 	else
 		right_invalid = 0;

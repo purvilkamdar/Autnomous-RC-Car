@@ -85,15 +85,26 @@ void period_10Hz(uint32_t count)
 			{
 			LE.toggle(4);
 			ApplyFilter();
+
 			sonic_sensor_data.SENSOR_left_sensor = left_filter.filtered_val;
 			sonic_sensor_data.SENSOR_middle_sensor = middle_filter.filtered_val;
 			sonic_sensor_data.SENSOR_right_sensor = right_filter.filtered_val;
+
 			LD.setNumber(sonic_sensor_data.SENSOR_left_sensor);
-			is_valid();
+			sensor_dbg.SENSOR_left_filt = left_filter.filtered_val;
+			sensor_dbg.SENSOR_middle_filt = middle_filter.filtered_val;
+			sensor_dbg.SENSOR_right_filt = right_filter.filtered_val;
+
+			dbc_encode_and_send_SENSOR_DBG(&sensor_dbg);
+			/*is_valid();
+			sonic_sensor_data.SENSOR_left_invalid = left_invalid;
+			sonic_sensor_data.SENSOR_middle_invalid = middle_invalid;
+			sonic_sensor_data.SENSOR_right_invalid = right_invalid;*/
 #if 0
 //Log filtered left,middle & right sensor values
 LOG_INFO("F %d %d %d\n",left_filter.filtered_val,middle_filter.filtered_val,right_filter.filtered_val);
 #endif
+
 			Reset_filters();
 			}
 
