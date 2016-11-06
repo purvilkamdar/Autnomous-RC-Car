@@ -4,7 +4,7 @@
  *  Created on: Nov 6, 2016
  *      Author: Kay
  */
-
+#include <stdio.h>
 #include "LCD_Display.hpp"
 #include "uart3.hpp"
 

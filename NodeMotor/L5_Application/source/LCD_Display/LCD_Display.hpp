@@ -8,7 +8,10 @@
 #ifndef L5_APPLICATION_SOURCE_LCD_DISPLAY_LCD_DISPLAY_HPP_
 #define L5_APPLICATION_SOURCE_LCD_DISPLAY_LCD_DISPLAY_HPP_
 
-
+#include "scheduler_task.hpp"
+#include "shared_handles.h"
+#include "FreeRTOS.h"
+#include "semphr.h"
 
 class LCD_touch_Task : public scheduler_task
 {
