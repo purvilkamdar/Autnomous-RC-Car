@@ -23,7 +23,7 @@
 #define GPS_Heading 66
 #define APP_START_STOP 1
 
-#define MIN_DISTANCE_INCHES       15
+#define MIN_DISTANCE_INCHES       25
 #define MED_DISTANCE_INCHES       40
 #define SIDE_MIN_DISTANCE_INCHES  25
 #define SIDE_MED_DISTANCE_INCHES  40

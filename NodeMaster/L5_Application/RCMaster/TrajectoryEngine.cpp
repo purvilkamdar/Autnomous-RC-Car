@@ -11,6 +11,7 @@
 TrajectoryEngine::TrajectoryEngine() {
 	// TODO Auto-generated constructor stub
 	current_state = idle;
+	last_reverse_dir = false;
 
 }
 
@@ -47,8 +48,11 @@ void TrajectoryEngine::run_trajectory (status_t& status, order_t& order) {
 	{
 		next_state = forward;
 	}
-
-    order.steer_order = center;
+    if (last_reverse_dir){
+    	order.steer_order = hard_left;
+    } else {
+    	order.steer_order = hard_right;
+    }
     order.speed_order = reverse;
 	break;
 	case (forward):
@@ -74,6 +78,7 @@ void TrajectoryEngine::run_trajectory (status_t& status, order_t& order) {
 		// if all center is blocked, go back
 		if (status.center_state == too_close ){
 			next_state = backward;
+			last_reverse_dir = !last_reverse_dir;
 		}
 		// if both sensors are in the same threshold levels,
 		// pick the closest to clear

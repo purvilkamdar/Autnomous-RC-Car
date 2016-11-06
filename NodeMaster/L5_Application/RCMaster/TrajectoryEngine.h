@@ -44,6 +44,7 @@ private:
 	int max_heading_error;
 	int med_heading_error;
 	void checkStop(status_t status);
+	bool last_reverse_dir;
 };
 
 #endif /* L5_APPLICATION_RCMASTER_TRAJECTORYENGINE_H_ */

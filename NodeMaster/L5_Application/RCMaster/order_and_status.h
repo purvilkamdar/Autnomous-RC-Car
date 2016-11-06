@@ -1,7 +1,7 @@
 #ifndef ORDER_AND_STATUS_H
 #define ORDER_AND_STATUS_H
 
-#define NO_APP
+//#define NO_APP
 
 enum motor_steer {
 	left_full,
