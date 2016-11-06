@@ -25,6 +25,7 @@
  */
 #include "tasks.hpp"
 #include "examples/examples.hpp"
+#include "source/LCD_Display/LCD_Display.hpp"
 
 /**
  * The main() creates tasks or "threads".  See the documentation of scheduler_task class at scheduler_task.hpp
@@ -74,6 +75,15 @@ int main(void)
      * This is a the board demonstration task that can be used to test the board.
      * This also shows you how to send a wireless packets to other boards.
      */
+
+	#if 1
+		scheduler_add_task(new LCD_Tx_Task());
+	#endif
+
+	#if 0
+		scheduler_add_task(new LCD_Rx_Task());
+	#endif
+
     #if 0
         scheduler_add_task(new example_io_demo());
     #endif

@@ -31,13 +31,15 @@
 #include "stdint.h"
 #include "io.hpp"
 #include "periodic_callback.h"
-#include "../_can_dbc/generated_can.h"
 #include "can.h"
 #include "stdio.h"
 #include "utilities.h"
 #include "string.h"
 #include "lpc_pwm.hpp"
 #include "lpc_sys.h"
+#include "../source/LCD_Display/LCD_Display_includes.hpp"
+//#include "../source/LCD_Display/LCD_Display.hpp"
+
 
 
 // PWM FREQUENCY USED FOR STEER AND SPEED 100 Hz
@@ -71,6 +73,7 @@ const MASTER_HB_t         MASTER_HB__MIA_MSG = { 8 };
 
 MASTER_HB_t master_can_msg = { 0 };
 
+
 bool dbc_app_send_can_msg(uint32_t mid, uint8_t dlc, uint8_t bytes[8])
 {
     can_msg_t can_msg = { 0 };
@@ -99,9 +102,9 @@ bool period_init(void)
 {
     CAN_init(can1,100,3,3,NULL,NULL);
     //CAN_bypass_filter_accept_all_msgs();
-    const can_std_id_t slist[]  = { CAN_gen_sid(can1, 0x020),   // Acknowledgment from the nodes that received sensor reading
-									  CAN_gen_sid(can1, 0x021) }; // Only 1 ID is expected, hence small range
-    CAN_setup_filter(slist, 2, NULL, 0, NULL, 0, NULL, 0);
+    const can_std_id_t slist[]  = { CAN_gen_sid(can1, 0x020),CAN_gen_sid(can1, 0x021), //master HB
+    								CAN_gen_sid(can1, 0x010), CAN_gen_sid(can1, 0x011) }; // Sensor data
+    CAN_setup_filter(slist, 4, NULL, 0, NULL, 0, NULL, 0);
     CAN_reset_bus(can1);
     carSpeed.set(MOTOR_CONTROLLER_INIT);
     carSteer.set(STEERING_POS_CENTER);
@@ -139,7 +142,7 @@ void period_10Hz(uint32_t count)
 	       while (CAN_rx(can1, &can_msg, 0))
 	        {
 	                 // Form the message header from the metadata of the arriving message
-	       dbc_msg_hdr_t can_msg_hdr;
+	    	   	dbc_msg_hdr_t can_msg_hdr;
 	            can_msg_hdr.dlc = can_msg.frame_fields.data_len;
 	            can_msg_hdr.mid = can_msg.msg_id;
 
@@ -223,7 +226,10 @@ void period_10Hz(uint32_t count)
 /////
 	            dbc_encode_and_send_MOTOR_STATUS(&motor_msg);
 	           }
-
+	            if(can_msg_hdr.mid == 0x10)
+	            {
+	            	dbc_decode_SENSOR_DATA(&sensor_data, can_msg.data.bytes, &can_msg_hdr);
+	            }
 	        }
 
 	       	if(dbc_handle_mia_MASTER_HB(&master_can_msg,10))
