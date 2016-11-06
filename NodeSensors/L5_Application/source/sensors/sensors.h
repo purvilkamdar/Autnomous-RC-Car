@@ -40,7 +40,7 @@ SD left,middle,right;
 
 SENSOR_DATA_t sonic_sensor_data;
 MASTER_HB_t master_hb_msg = { 0 };
-SENSOR_DBG_t sensor_dbg;
+//SENSOR_DBG_t sensor_dbg;
 
 const uint32_t         MASTER_HB__MIA_MS = 1000;
 const MASTER_HB_t      MASTER_HB__MIA_MSG = {0};

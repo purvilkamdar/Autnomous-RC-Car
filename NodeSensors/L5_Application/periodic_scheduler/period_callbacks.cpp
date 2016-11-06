@@ -91,11 +91,11 @@ void period_10Hz(uint32_t count)
 			sonic_sensor_data.SENSOR_right_sensor = right_filter.filtered_val;
 
 			LD.setNumber(sonic_sensor_data.SENSOR_left_sensor);
-			sensor_dbg.SENSOR_left_filt = left_filter.filtered_val;
-			sensor_dbg.SENSOR_middle_filt = middle_filter.filtered_val;
-			sensor_dbg.SENSOR_right_filt = right_filter.filtered_val;
+			//sensor_dbg.SENSOR_left_filt = left_filter.filtered_val;
+			//sensor_dbg.SENSOR_middle_filt = middle_filter.filtered_val;
+			//sensor_dbg.SENSOR_right_filt = right_filter.filtered_val;
 
-			dbc_encode_and_send_SENSOR_DBG(&sensor_dbg);
+			//dbc_encode_and_send_SENSOR_DBG(&sensor_dbg);
 			/*is_valid();
 			sonic_sensor_data.SENSOR_left_invalid = left_invalid;
 			sonic_sensor_data.SENSOR_middle_invalid = middle_invalid;
