@@ -589,7 +589,7 @@ class DBC(object):
         code += ("    else if(!old_mia.is_mia)   { // Previously not MIA, but it is MIA now\n")
         code += ("        // Copy MIA struct, then re-write the MIA counter and is_mia that is overwriten\n")
         code += ("        *msg = " + msg_name + "__MIA_MSG;\n")
-        code += ("        msg->mia_info.mia_counter_ms = " + msg_name + "__MIA_MS;\n")
+        code += ("        msg->mia_info.mia_counter_ms =0;\n")
         code += ("        msg->mia_info.is_mia = true;\n")
         code += ("        mia_occurred = true;\n")
         code += ("    }\n")

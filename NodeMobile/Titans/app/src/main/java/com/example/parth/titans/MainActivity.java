@@ -1,6 +1,7 @@
 package com.example.parth.titans;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
@@ -13,6 +14,7 @@ import android.bluetooth.le.ScanResult;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
@@ -85,7 +87,12 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleMap mMap;
     private TextView connectionState;
     private Button startButton;
-    private boolean connectedFlag;
+    private Button connectButton;
+    private boolean onceConnectedFlag;
+    private boolean goingFlag;
+
+    private AlertDialog.Builder builder;
+    private AlertDialog dialog;
 
     boolean Marker_Set=false;
     LatLng SU=null;
@@ -146,78 +153,78 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
 
 
-   private class ReadTask extends AsyncTask<String, Void, String> {
-
-       @Override
-       protected String doInBackground(String... url) {
-           String data = "";
-           try {
-               HttpConnection http = new HttpConnection();
-               data = http.readUrl(url[0]);
-           } catch (Exception e) {
-               Log.d("Background Task", e.toString());
-           }
-           return data;
-       }
-
-
-       @Override
-       protected void onPostExecute(String result) {
-           super.onPostExecute(result);
-           new ParserTask().execute(result);
-       }
-
-   }
-
-
-   private class ParserTask extends AsyncTask<String, Integer, List<List<HashMap<String, String>>>> {
-       @Override
-       protected List<List<HashMap<String, String>>> doInBackground(String... jsonData) {
-           JSONObject jObject;
-           List<List<HashMap<String, String>>> routes = null;
-           try {
-               jObject = new JSONObject(jsonData[0]);
-               PathJSONParser parser = new PathJSONParser();
-               routes = parser.parse(jObject);
-           } catch (Exception e) {
-               e.printStackTrace();
-           }
-           return routes;
-       }
+    private class ReadTask extends AsyncTask<String, Void, String> {
 
         @Override
-       protected void onPostExecute(List<List<HashMap<String, String>>> routes) {
+        protected String doInBackground(String... url) {
+            String data = "";
+            try {
+                HttpConnection http = new HttpConnection();
+                data = http.readUrl(url[0]);
+            } catch (Exception e) {
+                Log.d("Background Task", e.toString());
+            }
+            return data;
+        }
 
-           ArrayList<LatLng> points = null;
-           PolylineOptions polyLineOptions = null;
-           // traversing through routes
-           for (int i = 0; i < routes.size(); i++) {
-               points = new ArrayList<LatLng>();
-               polyLineOptions = new PolylineOptions();
-               List<HashMap<String, String>> path = routes.get(i);
 
-               for (int j = 0; j < path.size(); j++) {
-                   HashMap<String, String> point = path.get(j);
+        @Override
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+            new ParserTask().execute(result);
+        }
 
-                   double lat = Double.parseDouble(point.get("lat"));
-                   double lng = Double.parseDouble(point.get("lng"));
-                   LatLng position = new LatLng(lat, lng);
+    }
 
-                   points.add(position);
-               }
 
-               polyLineOptions.addAll(points);
-               polyLineOptions.width(10);
-               polyLineOptions.color(Color.RED);
-           }
-           Log.i("Reached", "Reached");
+    private class ParserTask extends AsyncTask<String, Integer, List<List<HashMap<String, String>>>> {
+        @Override
+        protected List<List<HashMap<String, String>>> doInBackground(String... jsonData) {
+            JSONObject jObject;
+            List<List<HashMap<String, String>>> routes = null;
+            try {
+                jObject = new JSONObject(jsonData[0]);
+                PathJSONParser parser = new PathJSONParser();
+                routes = parser.parse(jObject);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return routes;
+        }
+
+        @Override
+        protected void onPostExecute(List<List<HashMap<String, String>>> routes) {
+
+            ArrayList<LatLng> points = null;
+            PolylineOptions polyLineOptions = null;
+            // traversing through routes
+            for (int i = 0; i < routes.size(); i++) {
+                points = new ArrayList<LatLng>();
+                polyLineOptions = new PolylineOptions();
+                List<HashMap<String, String>> path = routes.get(i);
+
+                for (int j = 0; j < path.size(); j++) {
+                    HashMap<String, String> point = path.get(j);
+
+                    double lat = Double.parseDouble(point.get("lat"));
+                    double lng = Double.parseDouble(point.get("lng"));
+                    LatLng position = new LatLng(lat, lng);
+
+                    points.add(position);
+                }
+
+                polyLineOptions.addAll(points);
+                polyLineOptions.width(10);
+                polyLineOptions.color(Color.RED);
+            }
+            Log.i("Reached", "Reached");
             if(line!=null)
                 line.remove();
-           line=mMap.addPolyline(polyLineOptions);
+            line=mMap.addPolyline(polyLineOptions);
 
 
-       }
-   }
+        }
+    }
 
 
 
@@ -235,27 +242,30 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
 
 
-        private final BroadcastReceiver mGattUpdateReceiver = new BroadcastReceiver() {
+    private final BroadcastReceiver mGattUpdateReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getAction();
+            Log.i("Parth","In Rec...");
+            if(btLeService!=null){
+                Log.i("Parth","In thread ...");
+                if(btLeService.getConnectionState()==0) {
+                    updateConnectionState("Disconnected");
+                    connectButton.setText("Connect");
+                }
+                if(btLeService.getConnectionState()==1) {
+                    updateConnectionState("Connecting");
+                }
+                if(btLeService.getConnectionState()==2) {
+                    updateConnectionState("Connected");
+                    connectButton.setText("Disconnect");
+                }
+
+            }
             if (BluetoothLeService.ACTION_GATT_CONNECTED.equals(action)) {
                 Log.i("TITANS","Connected");
-                connectionState.setText("Connected");
-                connectedFlag=true;
-                invalidateOptionsMenu();
-            } else if (BluetoothLeService.ACTION_GATT_DISCONNECTED.equals(action)) {
-                connectionState.setText("Not Connected");
-                connectedFlag=false;
-                while (!connectedFlag) {
-                    try {
-                        wait(2000);
-                    } catch (Exception e) {
-
-                    }
-                    scanLeDevice(true);
-                }
-                invalidateOptionsMenu();
+                //updateConnectionState("Connected");
+                onceConnectedFlag=true;
 
             }
         }
@@ -315,7 +325,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 public void run() {
                     scanning = false;
                     btAdapter.stopLeScan(mLeScanCallback);
-                    invalidateOptionsMenu();
+
                 }
             }, SCAN_PERIOD);
 
@@ -325,7 +335,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             scanning = false;
             btAdapter.stopLeScan(mLeScanCallback);
         }
-        invalidateOptionsMenu();
+
     }
 
 
@@ -333,22 +343,19 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        connectedFlag=false;
+        onceConnectedFlag=false;
         setContentView(R.layout.activity_main);
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+        builder=new AlertDialog.Builder(this);
+
+
+        goingFlag=false;
         connectionState=(TextView)findViewById(R.id.textView7);
         startButton=(Button)findViewById(R.id.button4);
+        connectButton=(Button)findViewById(R.id.button2);
         handler=new Handler();
-        new Thread(new Runnable() {
-            public void run() {
-                Log.i("TitansThread:","thread running");
-                if(btLeService!=null) {
-                    btLeService.readCustomCharacteristic();
-                }
-            }
-        }).start();
 
         // To check whether device supports BLE or not
         if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
@@ -386,28 +393,57 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         }
         scanLeDevice(true);
 
-
         startButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(startButton.getText().toString().equalsIgnoreCase("START")){
-                    if(btLeService != null) {
-                        btLeService.writeCustomCharacteristic(1);
-                        Log.i("TITANS:","Write done");
-                        startButton.setText("STOP");
+                if(Marker_Set) {
+                    if (startButton.getText().toString().equalsIgnoreCase("START")) {
+                        if (btLeService != null) {
+                            btLeService.writeCustomCharacteristic(1);
+                            Log.i("TITANS:", "Write done");
+                            startButton.setText("STOP");
+                            goingFlag=true;
+                        }
+                    } else {
+                        if (btLeService != null) {
+                            btLeService.writeCustomCharacteristic(0);
+                            Log.i("TITANS:", "Write done");
+                            startButton.setText("START");
+                            goingFlag=true;
+                        }
                     }
                 }
                 else{
-                    if(btLeService != null) {
-                        btLeService.writeCustomCharacteristic(0);
-                        Log.i("TITANS:","Write done");
-                        startButton.setText("START");
-                    }
-                }
+                    builder.setMessage("Please Select Destination").setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
 
+                        }
+                    });
+                    dialog=builder.create();
+
+                    dialog.show();
+
+
+                }
             }
         });
 
+        connectButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(btLeService!=null){
+                    if(btLeService.getConnectionState()==0){
+                        btLeService.connect(bleChip.getAddress());
+                    }
+                    if(btLeService.getConnectionState()==2){
+                        if(onceConnectedFlag){
+                            btLeService.disconnect();
+                        }
+                    }
+                }
+            }
+        });
 
     }
 
@@ -443,27 +479,20 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     @Override
-    public void onStart() {
-        super.onStart();
-
-      
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        client.connect();
-        AppIndex.AppIndexApi.start(client, getIndexApiAction());
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        if(connectedFlag){
+    protected void onDestroy() {
+        super.onDestroy();
+        if(onceConnectedFlag){
             unbindService(btServiceConnection);
         }
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        AppIndex.AppIndexApi.end(client, getIndexApiAction());
-        client.disconnect();
     }
 
 
+    void updateConnectionState(final String msg){
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                connectionState.setText(msg);
+            }
+        });
+    }
 }
