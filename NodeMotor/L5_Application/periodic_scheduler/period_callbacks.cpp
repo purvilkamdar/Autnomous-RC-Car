@@ -38,10 +38,9 @@
 #include "lpc_pwm.hpp"
 #include "lpc_sys.h"
 #include "../source/LCD_Display/LCD_Display_includes.hpp"
-//#include "../source/LCD_Display/LCD_Display.hpp"
 
-
-
+SENSOR_DATA_t sensor_data = { 0 };
+COMPASS_Data_t compass_heading = { 0 };
 // PWM FREQUENCY USED FOR STEER AND SPEED 100 Hz
 // TIME PERIOD : 10 ms
 // FOR SPEED_LEVEL_FAST DUTY CYCLE : 20% of TIME PERIOD
@@ -102,8 +101,10 @@ bool period_init(void)
 {
     CAN_init(can1,100,3,3,NULL,NULL);
     //CAN_bypass_filter_accept_all_msgs();
-    const can_std_id_t slist[]  = { CAN_gen_sid(can1, 0x020),CAN_gen_sid(can1, 0x021), //master HB
-    								CAN_gen_sid(can1, 0x010), CAN_gen_sid(can1, 0x011) }; // Sensor data
+    const can_std_id_t slist[]  = { CAN_gen_sid(can1, 0x010), CAN_gen_sid(can1, 0x011),// Sensor data
+    								CAN_gen_sid(can1, 0x020),CAN_gen_sid(can1, 0x021), //master HB
+									CAN_gen_sid(can1, 0x042),CAN_gen_sid(can1, 0x043)};// Compass heading
+
     CAN_setup_filter(slist, 4, NULL, 0, NULL, 0, NULL, 0);
     CAN_reset_bus(can1);
     carSpeed.set(MOTOR_CONTROLLER_INIT);
@@ -226,13 +227,22 @@ void period_10Hz(uint32_t count)
 /////
 	            dbc_encode_and_send_MOTOR_STATUS(&motor_msg);
 	           }
-	            if(can_msg_hdr.mid == 0x10)
+	            /*Sensor data for LCD display*/
+	           else if(can_msg_hdr.mid == 0x10)
 	            {
 	            	dbc_decode_SENSOR_DATA(&sensor_data, can_msg.data.bytes, &can_msg_hdr);
+	            	LE.toggle(3);
 	            }
+	            /*Compass heading for LCD display
+	           else if(can_msg_hdr.mid == 0x42)
+	           {
+	        	dbc_decode_COMPASS_Data(&compass_heading,can_msg.data.bytes, &can_msg_hdr);
+	        	LE.toggle(4);
+	           }*/
 	        }
 
-	       	if(dbc_handle_mia_MASTER_HB(&master_can_msg,10))
+	       /*Handle MIA for master heart beat*/
+	        if(dbc_handle_mia_MASTER_HB(&master_can_msg,10))
 	       	{
 	       		carSpeed.set(SPEED_LEVEL_STOP);
 	       		LD.setNumber(88);

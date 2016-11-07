@@ -10,6 +10,7 @@
 
 #include "../../../_can_dbc/generated_can.h"
 
-SENSOR_DATA_t sensor_data = { 0 };
+extern SENSOR_DATA_t sensor_data;
+extern COMPASS_Data_t compass_heading;
 
 #endif /* L5_APPLICATION_SOURCE_LCD_DISPLAY_LCD_DISPLAY_INCLUDES_HPP_ */

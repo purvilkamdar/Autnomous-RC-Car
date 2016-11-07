@@ -26,9 +26,10 @@ class LCD_Tx_Task : public scheduler_task
     public:
 		LCD_Tx_Task();
 	    bool run(void *p);
-        void write_LCD(char command,char obj_type,char obj_idx,char arr[],char len);
+        void write_LCD(char command,char obj_type,char obj_idx,char byte2,char byte1 = 0x00);
     private:
         Uart3 &LCD_Tx = Uart3::getInstance();
+        char data[2];
         char ack;
 };
 
