@@ -90,7 +90,7 @@ public class BluetoothLeService extends Service {
                                          int status) {
             Log.i("TITANS:","CharacteristicRead");
             if (status == BluetoothGatt.GATT_SUCCESS) {
-                //broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
+               // broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
             }
         }
 
@@ -98,7 +98,7 @@ public class BluetoothLeService extends Service {
         public void onCharacteristicChanged(BluetoothGatt gatt,
                                             BluetoothGattCharacteristic characteristic) {
             Log.i("TITANS:","CharacteristicChange");
-            //broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
+            broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
         }
     };
 
@@ -132,9 +132,10 @@ public class BluetoothLeService extends Service {
             final byte[] data = characteristic.getValue();
             if (data != null && data.length > 0) {
                 final StringBuilder stringBuilder = new StringBuilder(data.length);
-                for(byte byteChar : data)
+                /*for(byte byteChar : data)
                     stringBuilder.append(String.format("%02X ", byteChar));
-                intent.putExtra(EXTRA_DATA, new String(data) + "\n" + stringBuilder.toString());
+                */
+                intent.putExtra(EXTRA_DATA, new String(data));
             }
         //}
         sendBroadcast(intent);
@@ -284,7 +285,10 @@ public class BluetoothLeService extends Service {
         }
         mBluetoothGatt.setCharacteristicNotification(characteristic, enabled);
 
-        // This is specific to Heart Rate Measurement.
+        BluetoothGattDescriptor descriptor = characteristic.getDescriptor(
+                UUID.fromString("0000ffe1-0000-1000-8000-00805f9b34fb"));
+        descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+        mBluetoothGatt.writeDescriptor(descriptor);
 
     }
 
@@ -316,7 +320,7 @@ public class BluetoothLeService extends Service {
             Log.w(TAG, "Failed to read characteristic");
         }
         else{
-            Log.i("TITANS:",mReadCharacteristic.toString());
+            mBluetoothGatt.setCharacteristicNotification(mReadCharacteristic,true);
         }
     }
 
