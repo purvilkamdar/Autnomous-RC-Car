@@ -61,7 +61,7 @@ BO_ 66 COMPASS_Data: 2 GPS
  SG_ COMPASS_Heading : 0|9@1+ (1,0) [0|0] "DEGREE" MASTER,APP,MOTOR 
  
 BO_ 48 MOTOR_STATUS: 2 MOTOR
- SG_ MOTOR_STATUS_speed_mph : 0|16@1+ (0.001,0) [0|0] "mph" MASTER,APP
+ SG_ MOTOR_STATUS_speed_mph : 0|16@1+ (1,0) [0|0] "mph" MASTER,APP
  
 CM_ BU_ MASTER "The master controller driving the car";
 CM_ BU_ MOTOR "The motor controller of the car";
