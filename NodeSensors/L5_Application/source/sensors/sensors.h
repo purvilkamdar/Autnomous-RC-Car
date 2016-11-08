@@ -18,6 +18,7 @@
 /* 21 buckets - 6.5 meters(256 inches) is the max range of sonic sensors.
  256 inches is divided into 12 inch ranges - total 21 buckets (12 * 21 ~ 252 inches) */
 #define BUCKETS 21
+#define SD_THRESHOLD 0.5
 
 /* GLOBALS */
 int start = 0;
@@ -223,17 +224,17 @@ void is_valid()
 	middle.variance /= 5;
 	right.variance /= 5;
 
-	if(sqrt(left.variance)/left.mean > 0.7)
+	if(sqrt(left.variance)/left.mean > SD_THRESHOLD)
 		left_invalid = 1;
 	else
 		left_invalid = 0;
 
-	if(sqrt(middle.variance)/middle.mean > 0.7)
+	if(sqrt(middle.variance)/middle.mean > SD_THRESHOLD)
 		middle_invalid = 1;
 	else
 		middle_invalid = 0;
 
-	if(sqrt(right.variance)/right.mean > 0.7)
+	if(sqrt(right.variance)/right.mean > SD_THRESHOLD)
 		right_invalid = 1;
 	else
 		right_invalid = 0;
