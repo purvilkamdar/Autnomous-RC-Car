@@ -38,6 +38,9 @@
 #include "lpc_pwm.hpp"
 #include "lpc_sys.h"
 #include "../source/LCD_Display/LCD_Display_includes.hpp"
+#include "eint.h"
+#include "gpio.hpp"
+
 
 SENSOR_DATA_t sensor_data = { 0 };
 COMPASS_Data_t compass_heading = { 0 };
@@ -58,11 +61,19 @@ COMPASS_Data_t compass_heading = { 0 };
 #define STEERING_POS_SLIGHT_RIGHT		16
 #define STEERING_POS_RIGHT				18
 
-int reverse_count = 0;
+#define FINAL_DRIVE 					12.58			//Gear to Wheel Ratio: Wheel rotates 1x for every 12.58 revolution of the DC motor
+#define PI								3.14159
+#define WHEEL_RADIUS					2.794			//Unit is centimeters
+#define SECS_PER_HOUR					3600
+#define CENTIMETERS_PER_MILES			160934.4
 
+uint32_t no_of_revolution;
+float mph;
+int reverse_count = 0;
 
 PWM carSteer(PWM::pwm3, 8);
 PWM carSpeed(PWM::pwm2, 8);
+GPIO RPM_PIN(P2_6);
 
 const MASTER_HB_t master_mia_msg = {0};
 const uint32_t master_mia_ms = 10;
@@ -72,6 +83,26 @@ const MASTER_HB_t         MASTER_HB__MIA_MSG = { 8 };
 
 MASTER_HB_t master_can_msg = { 0 };
 
+void RPM_Counter()
+{
+	no_of_revolution++;
+	LPC_GPIOINT->IO2IntClr = 0xFFFFFFFF;
+}
+
+float calc_mph()
+{
+	//mph : miles per hour
+	//no_of_revolution : no. of complete rotation of the gear directly connected to the DC motor
+	//GEAR_TO_WHEEL_RATIO : For n complete rotation of the gear, wheel rotates m times. ratio = n/m :(Final Drive: 12.58)
+	//r : radius of the wheels in centimeters
+	//1 miles = 160934.4 cm
+
+	mph = 10 * (((2 * PI * WHEEL_RADIUS) * no_of_revolution * SECS_PER_HOUR) / (CENTIMETERS_PER_MILES * FINAL_DRIVE));
+	printf("\n  ROTATION/(100 ms): %lu / %3.2f mph",no_of_revolution, mph);
+	no_of_revolution = 0;
+
+	return mph;
+}
 
 bool dbc_app_send_can_msg(uint32_t mid, uint8_t dlc, uint8_t bytes[8])
 {
@@ -107,6 +138,7 @@ bool period_init(void)
 
     CAN_setup_filter(slist, 4, NULL, 0, NULL, 0, NULL, 0);
     CAN_reset_bus(can1);
+    eint3_enable_port2(6, eint_rising_edge, RPM_Counter);
     carSpeed.set(MOTOR_CONTROLLER_INIT);
     carSteer.set(STEERING_POS_CENTER);
     return true; // Must return true upon success
@@ -125,15 +157,13 @@ bool period_reg_tlm(void)
  * The argument 'count' is the number of times each periodic task is called.
  */
 
+MASTER_HB_t master_hb_msg = { 0 };
+MOTOR_STATUS_t motor_msg={0};
 
 void period_1Hz(uint32_t count)
 {
-  //  LE.toggle(1);
+	//motor_msg.MOTOR_STATUS_speed_mph = calc_mph();
 }
-
-MASTER_HB_t master_hb_msg = { 0 };
-MOTOR_STATUS_t motor_msg={0};
-bool reverse = false;
 
 void period_10Hz(uint32_t count)
 {
@@ -149,11 +179,11 @@ void period_10Hz(uint32_t count)
 
 	            // Attempt to decode the message (brute force, but should use switch/case with MID)
 
-	            motor_msg.MOTOR_STATUS_speed_mph = 9.0;
+	            //motor_msg.MOTOR_STATUS_speed_mph = 9.0;
 	            if(can_msg_hdr.mid == 0x20)
 	            {
 	            	 	 dbc_decode_MASTER_HB(&master_hb_msg, can_msg.data.bytes, &can_msg_hdr);
-//////
+
 	            	 	 switch(master_hb_msg.MASTER_STEER_cmd)
 	            	 	 {
 	            	 	 	 case 0:
@@ -224,7 +254,7 @@ void period_10Hz(uint32_t count)
 
 	            	 	 		 	 break;
 	            	 	 }
-/////
+
 	            dbc_encode_and_send_MOTOR_STATUS(&motor_msg);
 	           }
 	            /*Sensor data for LCD display*/
@@ -245,6 +275,7 @@ void period_10Hz(uint32_t count)
 	        if(dbc_handle_mia_MASTER_HB(&master_can_msg,10))
 	       	{
 	       		carSpeed.set(SPEED_LEVEL_STOP);
+	       		carSteer.set(STEERING_POS_CENTER);
 	       		LD.setNumber(88);
 	       	}
 
@@ -253,6 +284,8 @@ void period_10Hz(uint32_t count)
 	        	LD.setNumber(80);
 	            CAN_reset_bus(can1);
 	        }
+
+	        motor_msg.MOTOR_STATUS_speed_mph = calc_mph() * 100;
 }
 
 void period_100Hz(uint32_t count)
