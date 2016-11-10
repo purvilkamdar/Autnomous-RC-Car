@@ -257,18 +257,20 @@ void period_10Hz(uint32_t count)
 
 	            dbc_encode_and_send_MOTOR_STATUS(&motor_msg);
 	           }
+
 	            /*Sensor data for LCD display*/
 	           else if(can_msg_hdr.mid == 0x10)
 	            {
 	            	dbc_decode_SENSOR_DATA(&sensor_data, can_msg.data.bytes, &can_msg_hdr);
 	            	LE.toggle(3);
 	            }
-	            /*Compass heading for LCD display
+
+	            /*Compass heading for LCD display*/
 	           else if(can_msg_hdr.mid == 0x42)
 	           {
 	        	dbc_decode_COMPASS_Data(&compass_heading,can_msg.data.bytes, &can_msg_hdr);
 	        	LE.toggle(4);
-	           }*/
+	           }
 	        }
 
 	       /*Handle MIA for master heart beat*/

@@ -44,7 +44,7 @@ LCD_Tx_Task::LCD_Tx_Task() :
 bool LCD_Tx_Task::run(void *p)
 {
 	LE.toggle(2);
-
+	/* Display sensor readings */
 	write_LCD(0x01,0x0B,0x00,sensor_data.SENSOR_left_sensor);
 	delay_ms(5);
 
@@ -54,9 +54,18 @@ bool LCD_Tx_Task::run(void *p)
 	write_LCD(0x01,0x0B,0x03,sensor_data.SENSOR_right_sensor);
 	delay_ms(5);
 
+	/* Display battery remaining */
 	write_LCD(0x01,0x0B,0x01,90);
 	delay_ms(15);
 
+	/* Display motor speed - speedometer & digital display */
+	write_LCD(0x01,0x10,0x00,(motor_msg.MOTOR_STATUS_speed_mph));
+	delay_ms(15);
+
+	write_LCD(0x01,0x0F,0x01,(motor_msg.MOTOR_STATUS_speed_mph));
+	delay_ms(15);
+
+	/* Display compass heading */
 	char byte1 = char((compass_heading.COMPASS_Heading >> 8) );
 	char byte2 = char(compass_heading.COMPASS_Heading & 0x00FF);
 	write_LCD(0x01,0x07,0x00,byte2,byte1);

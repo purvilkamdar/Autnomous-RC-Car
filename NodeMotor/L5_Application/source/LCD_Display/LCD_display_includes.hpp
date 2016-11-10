@@ -12,5 +12,6 @@
 
 extern SENSOR_DATA_t sensor_data;
 extern COMPASS_Data_t compass_heading;
+extern MOTOR_STATUS_t motor_msg;
 
 #endif /* L5_APPLICATION_SOURCE_LCD_DISPLAY_LCD_DISPLAY_INCLUDES_HPP_ */
