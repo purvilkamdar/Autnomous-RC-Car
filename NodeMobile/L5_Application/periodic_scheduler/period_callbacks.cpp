@@ -36,6 +36,7 @@
 #include "uart2.hpp"
 #include "can.h"
 #include "_can_dbc/generated_can.h"
+#include <iostream>
 /// This is the stack size used for each of the period tasks (1Hz, 10Hz, 100Hz, and 1000Hz)
 const uint32_t PERIOD_TASKS_STACK_SIZE_BYTES = (512 * 4);
 
@@ -47,12 +48,18 @@ const uint32_t PERIOD_TASKS_STACK_SIZE_BYTES = (512 * 4);
  */
 const uint32_t PERIOD_DISPATCHER_TASK_STACK_SIZE_BYTES = (512 * 3);
 Uart2 &u2 = Uart2::getInstance();
-char msg[10];
+//char* msg = new char[10];
+char *size = new char[2];
 bool start = 0;
 bool stop = 0;
+bool last_co = 0;
 int MIA_Unit=0;
 int left=99,right=99,center=99,rear=99;
 float latitude=0,longitude=0,speed=0;
+int n;
+float* s_latitude = new float[40];
+float* s_longitude = new float [40];
+int lat_counter=0, longi_counter=0,counter=0,last_counter=0;
 extern const uint32_t MASTER_HB__MIA_MS = 3000;
 extern const MASTER_HB_t MASTER_HB__MIA_MSG = { 0 };
 extern const uint32_t SENSOR_DATA__MIA_MS = 3000;
@@ -119,6 +126,13 @@ void period_1Hz(uint32_t count) {
 
 void period_10Hz(uint32_t count) {
 
+	//if(start)
+	//{
+		//LD.setNumber(10);
+		//if(u2.gets(msg,8,0))
+		//printf("%s", msg);
+	//}
+
 
 
 	char* data=new char[20];
@@ -143,9 +157,33 @@ void period_10Hz(uint32_t count) {
 		can_msg_hdr.dlc = can_msg.frame_fields.data_len;
 		can_msg_hdr.mid = can_msg.msg_id;
 		//Checks to see if msg ID matches Mater's HB ID. If so, send START_STOP.
+
 		if(can_msg_hdr.mid == 0x20)
 		{
 			dbc_decode_MASTER_HB(&heartbeat, can_msg.data.bytes, &can_msg_hdr);
+			if(last_counter!=0 && last_counter<=n)
+					{
+						start_cmd.APP_ROUTE_latitude=s_latitude[counter];
+						start_cmd.APP_ROUTE_longitude=s_longitude[counter];
+						if(counter!=lat_counter-1)
+						{
+							start_cmd.APP_FINAL_COORDINATE=0;
+						}
+						if(last_counter==n)
+						{
+							start_cmd.APP_FINAL_COORDINATE=1;
+							lat_counter=0;
+							longi_counter=0;
+							counter=0;
+							last_co=0;
+							LD.setNumber(10);
+							LE.off(2);
+						}
+						last_counter++;
+						counter++;
+						if(counter>=40)
+							counter=0;
+					}
 			dbc_encode_and_send_APP_START_STOP(&start_cmd);
 		}
 		if(can_msg_hdr.mid == 0x10){
@@ -195,25 +233,109 @@ void period_10Hz(uint32_t count) {
 }
 
 void period_100Hz(uint32_t count) {
-	LE.off(1);
+	//APP_START_STOP_t data = {0};
+	//data.APP_FINAL_COORDINATE=0;
+	char *stat=new char[8];
+		u2.gets(stat,8,0);
+		printf("String: %s",stat);
+		if(strcmp(stat,"start")==0) {
+					start=1;
+					//send_lat_long=1;
+					stop=0;
+					LE.on(4);
+				}
+				if(strcmp(stat,"stop")==0) {
+					stop=1;
+					start=0;
+					LE.off(4);
+				}
+		if(stat[0]=='S' && stat[1]=='i')
+		{
+			printf("%s",stat);
+			if(strlen(stat)>6)
+			{
+				char b[1];
+				b[0]=stat[5];
+				char c[1];
+				c[0]=stat[6];
+				strncat(size,b,1);
+				strncat(size,c,1);
+				sscanf(stat, "%d", &n);
+				printf("%d",n);
+				//delete[] s_longitude;
+				//delete[] s_latitude;
+				//s_longitude=new float[n];
+				//s_latitude=new float[n];
+			}
+			else if(strlen(stat)==6)
+			{
+				char d[1];
+				d[0]=stat[5];
+				strncat(size,d,1);
+				sscanf(stat, "%d", &n);
+				printf("%d",n);
+				//delete[] s_longitude;
+				//delete[] s_latitude;
+				//s_longitude=new float[n];
+				//s_latitude=new float[n];
+			}
+			//LE.on(3);
 
-	if (u2.getChar(msg, 0)) {
+		}
+		if(strcmp(stat,"Last")==0)
+		{
+			last_co=1;
+			LE.on(2);
+			//data.APP_FINAL_COORDINATE=1;
+
+
+		}
+		else if(stat[0]=='-')
+		{
+			//LE.on(1);
+			s_longitude[longi_counter]=atof(stat);
+			printf("Longitude: %f",s_longitude[longi_counter]);
+			longi_counter++;
+			if(longi_counter>=40)
+				longi_counter=0;
+			//data.APP_ROUTE_longitude=s_longitude;
+		}
+		else if(stat[0]=='3')
+		{
+			//LE.off(1);
+			s_latitude[lat_counter]=atof(stat);
+			printf("Latitude: %f",s_latitude[lat_counter]);
+			lat_counter++;
+			if(lat_counter>=40)
+				lat_counter=0;
+			//data.APP_ROUTE_latitude=s_latitude;
+		}
+		/*if(strcmp(stat,"start")==0)
+			LE.on(1);
+		else if(strcmp(stat,"stop")==0)
+			LE.on(2);*/
+
+
+	/*LE.off(2);
+	char* msg = new char[8];
+
+	if(u2.getChar(msg,0))
+		LE.on(2);
+	printf("\nReceived:%c",msg[0]);
+	//puts(msg);
+
+	if(msg[0]=='s')
 		LE.on(1);
 
-		printf("\nReceived:%d",msg[0]);
+	if(u2.gets(msg,5,0)) {
+		LE.on(1);
+*/
 
 
-		if(msg[0]==1) {
-			start=1;
-			stop=0;
-			LE.on(4);
-		}
-		if(msg[0]==0) {
-			stop=1;
-			start=0;
-			LE.off(4);
-		}
-	}
+
+
+
+	delete[] stat;
 
 	//LE.toggle(3);
 }
@@ -223,3 +345,4 @@ void period_100Hz(uint32_t count) {
 void period_1000Hz(uint32_t count) {
 	//LE.toggle(4);
 }
+
