@@ -55,7 +55,7 @@ void get_compass_data(COM_DATA *compassData)
 	//heading = x;
 	//sscanf(temp,"%f",&heading);
 	}
-	printf("Heading from Compas.pp = %i\n",heading);
+	printf("Heading from Compass = %i\n",heading);
 
 	compassData->Com_head = heading;
 }

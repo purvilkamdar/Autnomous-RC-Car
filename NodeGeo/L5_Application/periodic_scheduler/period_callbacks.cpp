@@ -40,13 +40,12 @@
 #include "can.h"
 #include "compass.hpp"
 
+COMPASS_Data_t COMPASS_Value = {0};
+GPS_Data_t gps_rx_data = {0};
 MASTER_HB_t master_hb = {0};
-GPS_DATA data_received = {0};
 
 const uint32_t         MASTER_HB__MIA_MS = 1000;
 const MASTER_HB_t      MASTER_HB__MIA_MSG = {0};
-
-COMPASS_Data_t COMPASS_Value = {0};
 
 /// This is the stack size used for each of the period tasks (1Hz, 10Hz, 100Hz, and 1000Hz)
 const uint32_t PERIOD_TASKS_STACK_SIZE_BYTES = (512 * 4);
@@ -79,11 +78,6 @@ bool period_reg_tlm(void)
  * The argument 'count' is the number of times each periodic task is called.
  */
 
-/*
- * Available GPS Address Types:
- * GNVTG GNGGA GNGSA GPGSV GLGSV GNGLL GNRMC GPRMC
- */
-
 void period_1Hz(uint32_t count)
 {
 	check_reset_canbus();
@@ -92,34 +86,53 @@ void period_1Hz(uint32_t count)
 void period_10Hz(uint32_t count)
 {
 
-  //Group Project Code
-	GPS_Data_t gps_rx_data = {0};
 	COM_DATA compass = {0};
+	static GPS_DATA data_received = {0};
 	can_msg_t can_msg;
 
-	//Get compass Data
+	/*---Gets compass Data---*/
 	get_compass_data(&compass);
-
-	//Get GPS Data
-	readGPS(GPRMC, &data_received);
-
-	//takes coordinates (start(x,y) , destination(x,y), current(x,y))
-	//float angle = angleOfApproach(37.335689,121.881565,37.335786,121.881347,37.335862,121.881533);
-
-	//printf("Angle of approach is: %f\n", angle);
-
-	gps_rx_data.GPS_READOUT_valid_bit = data_received.valid_bit;
-		printf("Valid Bit = %d\n",gps_rx_data.GPS_READOUT_valid_bit);
-	gps_rx_data.GPS_READOUT_read_counter = data_received.counter;
-		printf("GPS Counter = %d\n",gps_rx_data.GPS_READOUT_read_counter);
-	gps_rx_data.GPS_READOUT_latitude = data_received.latitude;
-		printf("GPS Latitude = %f\n",gps_rx_data.GPS_READOUT_latitude);
-	gps_rx_data.GPS_READOUT_longitude = data_received.longitude;
-		printf("GPS Longitude = %f\n",gps_rx_data.GPS_READOUT_longitude);
 
 	COMPASS_Value.COMPASS_Heading = compass.Com_head;
 
-	printf("Compass = %d,\n", COMPASS_Value.COMPASS_Heading);
+	/*---Gets GPS Data---*/
+	get_GPS(GPRMC, &data_received);
+
+	gps_rx_data.GPS_READOUT_valid_bit = data_received.valid_bit;
+		//printf("Valid Bit = %d\n",gps_rx_data.GPS_READOUT_valid_bit);
+	gps_rx_data.GPS_READOUT_read_counter = data_received.counter;
+		//printf("GPS Counter = %d\n",gps_rx_data.GPS_READOUT_read_counter);
+	gps_rx_data.GPS_READOUT_latitude = data_received.latitude;
+		//printf("GPS Latitude = %f\n",gps_rx_data.GPS_READOUT_latitude);
+	gps_rx_data.GPS_READOUT_longitude = data_received.longitude;
+		//printf("GPS Longitude = %f\n",gps_rx_data.GPS_READOUT_longitude);
+
+/* --------Sending to Canbus Periodically for anyone node to read------------*/
+	dbc_encode_and_send_GPS_Data(&gps_rx_data);
+	dbc_encode_and_send_COMPASS_Data(&COMPASS_Value);
+/*-----------------END Canbus message force send--------------------*/
+
+/* ---------- This area is for manual testing of angle and distance using a fixed coordinate from Google Map and readings from GPS module --------*/
+	//takes coordinates (start(x,y) , destination(x,y), current(x,y))
+	double angle = angleOfError(data_received.latitude,data_received.longitude,37.336610,-121.881404,compass.Com_head);
+	//double angle = angleOfError(37.069436,-120.85369,37.069213,-120.853929,227);
+	printf("\nAngle of approach is: %f\n", angle);
+	double distance = distanceToTargetLocation(data_received.latitude,data_received.longitude,37.336610,-121.881404);
+	//double distance = distanceToTargetLocation(37.069436,-120.85369,37.069134,-120.854213);
+	int int_distance = (int)distance;
+
+	if(int_distance >= 99)
+		LD.setNumber(99);
+	else
+		LD.setNumber(int_distance);
+
+	printf("Distance away from destination: %f meter(s) \n\n", distance);
+
+/*-------------------------END of manual testing code-----------------------------------*/
+
+/*	Polls for master's HB message. Once received, sends Compass and GPS data out */
+/*-----NEED TO DO: need MASTER's msg id to retrieve next checkpoint GPS coordinate.The received coordinates will be used to calculate---*/
+/*-----------------both angle of error and distance and then sends the data back to the MASTER using GEO's msg id 67------*/
 
 	while(CAN_rx(can1, &can_msg,0))
 	{
@@ -127,19 +140,29 @@ void period_10Hz(uint32_t count)
 		can_msg_hdr.dlc = can_msg.frame_fields.data_len;
 		can_msg_hdr.mid = can_msg.msg_id;
 
-		dbc_decode_MASTER_HB(&master_hb, can_msg.data.bytes, &can_msg_hdr);
-			            if(can_msg_hdr.mid == 0x20)
-			            {
-			            dbc_encode_and_send_GPS_Data(&gps_rx_data);
-			            dbc_encode_and_send_COMPASS_Data(&COMPASS_Value);
-			            }
+		if(dbc_decode_MASTER_HB(&master_hb, can_msg.data.bytes, &can_msg_hdr))
+		{
+			double angle = angleOfError(data_received.latitude,data_received.longitude,37.071419,-120.85464,compass.Com_head);
+			printf("\nAngle of approach is: %f\n", angle);
+			double distance = distanceToTargetLocation(data_received.latitude,data_received.longitude,37.071419,-120.85464);
+			printf("Distance away from destination: %f meter(s) \n\n", distance);
+
+
+
+			int int_distance = (int)distance;
+
+				if(int_distance >= 99)
+					LD.setNumber(99);
+				else
+					LD.setNumber(int_distance);
+		}
 	}
 
-	 if(dbc_handle_mia_MASTER_HB(&master_hb,100))
-		{
-		printf("In MIA State./n");
-		LE.toggle(3);
-		}
+//	if(dbc_handle_mia_MASTER_HB(&master_hb,100))
+//	{
+//		printf("In MIA State.\n");
+//		LE.toggle(3);
+//	}
 
 
 /*

@@ -15,10 +15,6 @@
 #include "can.h"
 #include "math.h"
 
-
-/* defines 0.000001 decimal degree equals to 0.8865491 centimeter */
-#define decimalDegreeToCM 0.8865491
-
 /*
  * Initializes serial ports
  * 	->Uart2 to receive Data from GPS module
@@ -28,12 +24,12 @@
  */
 void serialInit(void)
 {
-	Uart3::getInstance().init(57600,100,100);
-	Uart2::getInstance().init(115200,128,100);
+	Uart3::getInstance().init(57600,1,0);
+	Uart2::getInstance().init(115200,75,0);
 	CAN_init(can1,100,5,5,NULL,NULL);
 	CAN_init(can2,100,5,5,NULL,NULL);
-	const can_std_id_t slist[]  = { CAN_gen_sid(can1, 0x020),   // Acknowledgment from the nodes that received sensor reading
-											CAN_gen_sid(can1, 0x021) }; // Only 1 ID is expected, hence small range
+	const can_std_id_t slist[]  = { CAN_gen_sid(can1, 0x020),  // Acknowledgment from the nodes that received sensor reading
+									CAN_gen_sid(can1, 0x021)}; // Only 1 ID is expected, hence small range
 	CAN_setup_filter(slist, 2, NULL, 0, NULL, 0, NULL, 0);
 	CAN_reset_bus(can1);
 	CAN_reset_bus(can2);
@@ -58,59 +54,125 @@ void check_reset_canbus(void)
  *
  * This functions uses vectors to find the arc-cosine of the angle
  */
-double angleOfApproach(double start_lat, double start_long, double destination_lat, double destination_long, double current_lat, double current_long)
+double angleOfError(double current_lat, double current_long, double destination_lat, double destination_long, double compass_angle)
 {
 	struct Coordinates{
 		double x;
 		double y;
-	} current_A, start_B, destination_C, vector_P, vector_R;
+	} current_A, projection_B, destination_C, vector_P, vector_R;
 
 	double angle = 0;
+	double angle_abs_difference = 0;
+	double angle_final = 0;
+	double compass_new = 0;
 	double productVectors = 0 ;
 	double magnitude_R = 0;
 	double magnitude_P = 0;
 
-	//Reassigning input to better visual them as coordinates
-	current_A.x = current_lat;
-	current_A.y = current_long;
-	destination_C.x = destination_lat;
-	destination_C.y = destination_long;
-	start_B.x = start_lat;
-	start_B.y = start_long;
+	/*---Reassigning input to better visual them as coordinates---*/
+	current_A.x = current_long;
+	current_A.y = current_lat;
+	destination_C.x = destination_long;
+	destination_C.y = destination_lat;
+	projection_B.x = current_long;
+	projection_B.y = current_lat + 0.1;
 
-	//Vector CA-> (real car position)  is equal to A-C
-	vector_R.x = current_A.x - destination_C.x;
-	vector_R.y = current_A.y - destination_C.y;
+	/*---Vector AB-> (vector of car position to its destination)  is equal to A-C ---*/
+	vector_R.x = projection_B.x - current_A.x;
+	vector_R.y = projection_B.y - current_A.y;
 
-	//Vector CB-> (ideal path of car position) is equal to B-C
-	vector_P.x = start_B.x - destination_C.x;
-	vector_P.y = start_B.y - destination_C.y;
+	/*---Vector AC-> (vector of car position to north) is equal to B-C ---*/
+	vector_P.x = destination_C.x - current_A.x;
+	vector_P.y = destination_C.y - current_A.y;
 
-	//Product of both Vectors R & P (CA * CB)
+	/*---Product of both Vectors R & P (CA * CB)---*/
 	productVectors = (vector_R.x * vector_P.x) + (vector_R.y * vector_P.y);
 	//printf("Product of Vectors = %f\n",productVectors);
 
-	//Magnitude of vector R (||CA||)
+	/*---Magnitude of vector R (||CA||)---*/
 	magnitude_R = sqrt(pow(vector_R.x,2) + pow(vector_R.y,2));
 	//printf("Magnitude_R = %f\n", magnitude_R);
 
-	//Magnitude of vector P (||CB||)
+	/*---Magnitude of vector P (||CB||)---*/
 	magnitude_P = sqrt(pow(vector_P.x,2) + pow(vector_P.y,2));
 	//printf("Magnitude_p = %f\n\n", magnitude_P);
 
-	//Computes Arc-Cosine and converts results to degrees
+	/*---Computes Arc-Cosine and converts results to degrees. Result is angle between north vector and next destination vector---*/
 	angle = acos(productVectors/(magnitude_R*magnitude_P)) * (180.0 / M_PI);
 
-	return angle;
+	/*---Next 20 lines of code determines if next destination is East or West then determines to turn left or right---*/
+	/*---Checks if destination_longitude is less than current_longitude and change sign of angle to mark if destination is on East(+) or West(-) side.---*/
+	if(destination_C.x < current_A.x)
+		angle = angle*(-1);
+		printf("Angle with respect to North = %f\n", angle);
+	/*---Perform an offset to compass heading once it reads over 180 degree. This is to help next calculation.---*/
+	if(compass_angle > 180)
+		compass_new = (-1)*(360 - compass_angle);
+	else
+		compass_new = compass_angle;
+
+	/*---Checks which side (East or West) next destination is and then calculate the angle the car needs to turn (left or right).---*/
+	if(angle < 0)
+	{
+		angle_abs_difference = fabs(angle - compass_new);
+
+		if(angle_abs_difference > 180)
+			angle_final = 360.0 - angle_abs_difference;
+		else
+			angle_final = angle - compass_new;
+	}
+	else
+	{
+		angle_abs_difference = fabs(angle - compass_new);
+
+		if(angle_abs_difference > 180)
+			angle_final = angle_abs_difference - 360.0;
+		else
+			angle_final = angle - compass_new;
+	}
+
+	return angle_final;
+
+}
+
+
+/*
+ * Function takes in two GPS coordinates then calculates the actual distance in Meter between them.
+ * This is used to monitor the distance between the car and its targeted location.
+ */
+double distanceToTargetLocation(double current_lat, double current_long, double destination_lat, double destination_long)
+{
+    struct Coordinates{
+		double x;
+		double y;
+	} current_A, destination_B, vector_R;
+
+	double distance = 0;
+	double magnitude = 0;
+
+	current_A.x = current_lat;
+	current_A.y = current_long;
+	destination_B.x = destination_lat;
+	destination_B.y = destination_long;
+
+	vector_R.x = current_A.x - destination_B.x;
+	vector_R.y = current_A.y - destination_B.y;
+
+	magnitude = sqrt(pow(vector_R.x,2)+pow(vector_R.y,2));
+	printf("Magnitude = %f\n", magnitude);
+
+	distance = (magnitude/decimalDegrees)*meterPerDecimalDegree(current_lat);
+
+	return distance;
 }
 
 /*
  * Function to take in raw GPS data format DDDMM.MMMM and converts it to Decimal Degree
  * Gets called in readGPS() function after receiving GPS data
  */
-uint32_t floatToDecimalDegree(float strDegree)
+float floatToDecimalDegree(float strDegree)
 {
-	uint32_t degree;
+//	uint32_t degree;
 	float decimal_Degree;
 	int temp_DD;
 	float temp_MM;
@@ -125,18 +187,22 @@ uint32_t floatToDecimalDegree(float strDegree)
 	decimal_Degree = (float)temp_DD + temp_MM;
 
 	//Converts float decimal_Degree into correct unint32 format. DBC file will revert it back to correct float value.
-	degree = (uint32_t)(decimal_Degree * 1000000);
+	//degree = (uint32_t)(decimal_Degree * 1000000);
 
-	return degree;
+	return decimal_Degree;
 }
 
 /*
  * This function takes in the type of GPS Address and GPS_DATA structure
  * The desired GPS data is filtered and parsed into the GPS_DATA structure
- * 		-So far, this function is only optimized to filter GNRMC gps address type
+ * 		-So far, this function is only optimized to filter GPRMC gps address type
  * 		 which is all we really need.
+ *
+ * Available GPS Address Types(gps_name):
+ * GNVTG GNGGA GNGSA GPGSV GLGSV GNGLL GNRMC GPRMC
+ * Types are available depending on GPS module and if the messages are enabled on the GPS chip
  */
-void readGPS(gps_name addr, GPS_DATA *data_r)
+void get_GPS(gps_name addr, GPS_DATA *data_r)
 {
 	static Uart2 &u2 = Uart2::getInstance();
 	u2.flush();
@@ -145,36 +211,28 @@ void readGPS(gps_name addr, GPS_DATA *data_r)
 	int i = 0;
 	const char parser = ',';
 
-	/*
-	 * Set memory arrays to zero
-	 */
+	/* Set memory arrays to zero */
 	memset(&data[0],0,sizeof(data));
 	memset(&addrCode[0],0,sizeof(addrCode));
 
-	/*
-	 * Read string of GPS data into buffer data[]
-	 */
+	/*  Read string of GPS data into buffer data[] */
 	u2.gets(data,128,0);
 
-	//printf("GPS: %s\n",data); //Print out for debugging
+	printf("GPS: %s\n",data); //Print out for debugging
 
-	/*
-	 * Copy GPS Address Code from data[] into array addrCode[]
-	 */
+	/* Copy GPS Address Code from data[] into array addrCode[] */
 	for(i=0; i<5; i++)
 		addrCode[i] = data[i+1];
 
 	char *valid_bit;
 
-	/*
-	 * Compares GPS address type and if true, print desired GPS data
-	 */
+	/* Compares GPS address type and if true, print desired GPS data */
 	if(strcmp(gps_addr[addr],addrCode) == 0)
 	{
 		/*
 		 * Increments each time new GPS data is received.
 		 */
-		if(data_r->counter >= 2000)
+		if(data_r->counter >= 60)
 				data_r->counter = 0;
 		data_r->counter++;
 
@@ -191,34 +249,26 @@ void readGPS(gps_name addr, GPS_DATA *data_r)
 		//"A" is valid and "V" is invalid
 		if(*valid_bit == 'A')
 		{
-			//GPS Data is valid
+			/*GPS Data is valid*/
 			data_r->valid_bit = 1;
 			temp_Latitude = atof(strtok(NULL, &parser));
 			strtok(NULL, &parser);
 			temp_Longitude = atof(strtok(NULL, &parser));
 			data_r->latitude = floatToDecimalDegree(temp_Latitude);
-			data_r->longitude = floatToDecimalDegree(temp_Longitude);
+			data_r->longitude = floatToDecimalDegree(temp_Longitude)*(-1);
 
 //			printf("Valid bit = %d\n", data_r->valid_bit);
 //			printf("Counter =   %d\n", data_r->counter);
-//			printf("Latitude =  %lu\n", data_r->latitude);
-//			printf("Longitude = %lu\n", data_r->longitude);
+//			printf("Latitude =  %f\n", data_r->latitude);
+//			printf("Longitude = %f\n", data_r->longitude);
 		}
 		else
 			{
-			//GPS Data is not valid
-
-//			data_r->valid_bit = ;
-//						temp_Latitude = atof(strtok(NULL, &parser));
-//						strtok(NULL, &parser);
-//						temp_Longitude = atof(strtok(NULL, &parser));
-//						data_r->latitude = floatToDecimalDegree(temp_Latitude);
-//						data_r->longitude = floatToDecimalDegree(temp_Longitude);
-
+			/*GPS Data is not valid. Set valid bit, latitude and longitude to 0*/
 			data_r->valid_bit = 0;
 			data_r->latitude = 0;
 			data_r->longitude = 0;
-//			printf("Valid bit = %d\n", data_r->valid_bit);
+			printf("Valid bit = %d\n", data_r->valid_bit);
 //			printf("Counter =   %d\n", data_r->counter);
 //			printf("Latitude =  %lu\n", data_r->latitude);
 //			printf("Longitude = %lu\n", data_r->longitude);
