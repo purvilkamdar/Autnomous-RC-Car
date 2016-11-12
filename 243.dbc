@@ -29,7 +29,7 @@ NS_ :
 	SIG_VALTYPE_
 	VAL_
 	VAL_TABLE_
-	
+
 BS_:
 
 BU_: DBG MASTER GPS MOTOR SENSOR APP
@@ -46,7 +46,7 @@ BO_ 16 SENSOR_DATA: 3 SENSOR
  SG_ SENSOR_left_sensor : 0|8@1+ (1,0) [0|0] "Inches" MASTER,APP 
  SG_ SENSOR_middle_sensor : 8|8@1+ (1,0) [0|0] "Inches" MASTER,APP 
  SG_ SENSOR_right_sensor : 16|8@1+ (1,0) [0|0] "Inches" MASTER,APP 
- 
+
 BO_ 32 MASTER_HB: 2 MASTER 
  SG_ MASTER_SPEED_cmd : 0|8@1+ (1,0) [0|0] "" SENSOR,MOTOR,GPS,APP
  SG_ MASTER_STEER_cmd : 8|8@1+ (1,0) [0|0] "" SENSOR,MOTOR,GPS,APP
@@ -59,6 +59,10 @@ BO_ 65 GPS_Data: 8 GPS
 
 BO_ 66 COMPASS_Data: 2 GPS
  SG_ COMPASS_Heading : 0|9@1+ (1,0) [0|0] "DEGREE" MASTER,APP,MOTOR 
+
+BO_ 67 GEO_Header: 3 GPS
+ SG_ GPS_ANGLE_degree : 0|12@1+ (0.1,-180) [-180.0,180.0] "Degree" MASTER,APP,MOTOR
+ SG_ GPS_DISTANCE_meter: 12|12@1+ (0.1,0) [0.0,400,0] "Meters" MASTER,APP,MOTOR
  
 BO_ 48 MOTOR_STATUS: 2 MOTOR
  SG_ MOTOR_STATUS_speed_mph : 0|16@1+ (0.001,0) [0|0] "mph" MASTER,APP
