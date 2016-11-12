@@ -34,6 +34,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.os.AsyncTask;
@@ -60,6 +61,7 @@ import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import android.R.color;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import android.os.Handler;
@@ -81,24 +83,30 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
     private Handler handler;
     private final int SCAN_PERIOD=1000;
-    private  boolean scanning;
+    private boolean scanning;
     private BluetoothDevice bleChip;
     private BluetoothLeService btLeService;
     private GoogleMap mMap;
     private TextView connectionState;
+    private TextView speedView;
+    private TextView gpsView;
     private Button startButton;
     private Button connectButton;
     private boolean onceConnectedFlag;
     private boolean goingFlag;
-
+    private ProgressBar leftProgress,rightProgress,centerProgress,rearProgress;
     private AlertDialog.Builder builder;
     private AlertDialog dialog;
-
+    private int leftSensorVal,rightSensorVal,centerSensorVal,rearSensorVal;
+    private String receivedData;
     boolean Marker_Set=false;
+    boolean send_lat_long=false;
     LatLng SU=null;
     LatLng Destination=null;
     Marker marker;
     Polyline line=null;
+    private ArrayList<String> Lati;
+    private ArrayList<String> Longi;
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         //polyline=new PolylineOptions();
@@ -194,7 +202,8 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
         @Override
         protected void onPostExecute(List<List<HashMap<String, String>>> routes) {
-
+            Lati = new ArrayList<String>();
+            Longi = new ArrayList<String>();
             ArrayList<LatLng> points = null;
             PolylineOptions polyLineOptions = null;
             // traversing through routes
@@ -209,6 +218,8 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                     double lat = Double.parseDouble(point.get("lat"));
                     double lng = Double.parseDouble(point.get("lng"));
                     LatLng position = new LatLng(lat, lng);
+                    Lati.add(Double.toString(lat*1000000));
+                    Longi.add(Double.toString(lng*1000000));
 
                     points.add(position);
                 }
@@ -222,10 +233,52 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 line.remove();
             line=mMap.addPolyline(polyLineOptions);
 
-
         }
     }
 
+
+    public void SendData()
+    {
+        try {
+            Thread.sleep(10);
+            btLeService.writeLatLong("Size="+Integer.toString(Lati.size()+1));
+        }
+        catch (Exception e)
+        {
+            Log.w("Error",e.toString());
+        }
+        for(int i=0 ; i<Lati.size(); i++)
+        {
+            if(btLeService!=null)
+            {
+                try {
+                    Thread.sleep(10);
+                    btLeService.writeLatLong(Lati.get(i));
+                    Thread.sleep(10);
+                    btLeService.writeLatLong(Longi.get(i));
+                }
+                catch (Exception e)
+                {
+                    Log.w("Error:",e.toString());
+                }
+
+            }
+        }
+        try {
+            Thread.sleep(10);
+            btLeService.writeLatLong(Double.toString(Destination.latitude*1000000));
+            Thread.sleep(10);
+            btLeService.writeLatLong(Double.toString(Destination.longitude*1000000));
+            Thread.sleep(10);
+            btLeService.writeLatLong("Last");
+
+            //send_lat_long=false;
+        }
+        catch (Exception e)
+        {
+            Log.w("Error:",e.toString());
+        }
+    }
 
 
 
@@ -251,26 +304,67 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 Log.i("Parth","In thread ...");
                 if(btLeService.getConnectionState()==0) {
                     updateConnectionState("Disconnected");
-                    connectButton.setText("Connect");
+                    connectButton.setText("Search");
                 }
                 if(btLeService.getConnectionState()==1) {
                     updateConnectionState("Connecting");
                 }
                 if(btLeService.getConnectionState()==2) {
                     updateConnectionState("Connected");
+
                     connectButton.setText("Disconnect");
+
+
+
                 }
 
             }
             if (BluetoothLeService.ACTION_GATT_CONNECTED.equals(action)) {
                 Log.i("TITANS","Connected");
-                //updateConnectionState("Connected");
+                try {
+                    btLeService.readCustomCharacteristic();
+                    Thread.sleep(100);
+                    btLeService.readCustomCharacteristic();
+                    Thread.sleep(100);
+                    btLeService.readCustomCharacteristic();
+                }catch(Exception e){
+
+                }
                 onceConnectedFlag=true;
 
+            }else if(BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
+
+            }else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
+
+
+                //if(send_lat_long)
+                    //SendData();
+
+                receivedData = intent.getStringExtra(BluetoothLeService.EXTRA_DATA);
+                    if (!receivedData.equals("")) {
+                        if (receivedData.contains("L")) {
+                            leftSensorVal = Integer.parseInt(receivedData.substring(receivedData.indexOf('L') + 1,receivedData.indexOf('R')));
+                        }  if (receivedData.contains("C")) {
+                            centerSensorVal = Integer.parseInt(receivedData.substring(receivedData.indexOf('C') + 1,receivedData.indexOf('B')));
+                        }  if (receivedData.contains("R")) {
+                            rightSensorVal = Integer.parseInt(receivedData.substring(receivedData.indexOf('R') + 1,receivedData.indexOf('C')));
+                        }  if (receivedData.contains("B")) {
+                            rearSensorVal = Integer.parseInt(receivedData.substring(receivedData.indexOf('B') + 1,receivedData.indexOf('S')));
+                        }  if (receivedData.contains("SPD")){
+                            speedView.setText(receivedData.substring(receivedData.indexOf('D')+1)+" mph");
+                        }
+                    }
+                    leftProgress.setProgress(leftSensorVal);
+                    centerProgress.setProgress(centerSensorVal);
+                    rightProgress.setProgress(rightSensorVal);
+                    rearProgress.setProgress(rearSensorVal);
+                    Log.i("TITANS/Received", receivedData);
+
+
             }
+
         }
     };
-
 
     private ServiceConnection btServiceConnection = new ServiceConnection(){
         @Override
@@ -308,7 +402,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                                     Log.i("TITANS:",bleChip.getName());
                                     Intent gattServiceIntent = new Intent(getApplicationContext(), BluetoothLeService.class);
                                     bindService(gattServiceIntent, btServiceConnection, BIND_AUTO_CREATE);
-
+                                    connectButton.setText("Connect");
                                     scanning = false;
                                 }
                         }
@@ -344,18 +438,28 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         onceConnectedFlag=false;
+        receivedData="";
         setContentView(R.layout.activity_main);
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
         builder=new AlertDialog.Builder(this);
-
-
+        handler=new Handler();
+        leftProgress=(ProgressBar)findViewById(R.id.leftProgressBar);
+        centerProgress=(ProgressBar)findViewById(R.id.centerProgressBar);
+        rightProgress=(ProgressBar)findViewById(R.id.rightProgressBar);
+        rearProgress=(ProgressBar)findViewById(R.id.rearProgressBar);
+        leftProgress.setMax(99);
+        centerProgress.setMax(99);
+        rightProgress.setMax(99);
+        rearProgress.setMax(99);
         goingFlag=false;
         connectionState=(TextView)findViewById(R.id.textView7);
+        speedView=(TextView)findViewById(R.id.speedView);
+        gpsView=(TextView)findViewById(R.id.gpsView);
         startButton=(Button)findViewById(R.id.button4);
         connectButton=(Button)findViewById(R.id.button2);
-        handler=new Handler();
+
 
         // To check whether device supports BLE or not
         if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
@@ -373,8 +477,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             finish();
             return;
         }
-
-
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
     }
 
@@ -391,7 +493,8 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 startActivityForResult(enableBtIntent, 0);
             }
         }
-        scanLeDevice(true);
+        //scanLeDevice(true);
+
 
         startButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -399,17 +502,29 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 if(Marker_Set) {
                     if (startButton.getText().toString().equalsIgnoreCase("START")) {
                         if (btLeService != null) {
-                            btLeService.writeCustomCharacteristic(1);
-                            Log.i("TITANS:", "Write done");
+                            Log.w("Written total size:",Integer.toString(Lati.size()+1));
+                            btLeService.writeStartStop("start");
+                            try {
+                                Thread.sleep(10);
+                            }
+                            catch (Exception e)
+                            {
+
+                            }
+                            SendData();
+                            Log.i("TITANS:", "Start Write done");
                             startButton.setText("STOP");
                             goingFlag=true;
+                            send_lat_long=true;
+                            //stopRead=false;
                         }
                     } else {
                         if (btLeService != null) {
-                            btLeService.writeCustomCharacteristic(0);
-                            Log.i("TITANS:", "Write done");
+                            goingFlag=false;
+                            btLeService.writeStartStop("stop");
+                            Log.i("TITANS:", "Stop Write done");
                             startButton.setText("START");
-                            goingFlag=true;
+
                         }
                     }
                 }
@@ -432,13 +547,24 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         connectButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(btLeService!=null){
+                if (!btAdapter.isEnabled()) {
+                    if (!btAdapter.isEnabled()) {
+                        Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                        startActivityForResult(enableBtIntent, 0);
+                    }
+                }
+                if(bleChip==null) {
+                    scanLeDevice(true);
+                }
+
+                if(btLeService!=null && bleChip!=null){
                     if(btLeService.getConnectionState()==0){
                         btLeService.connect(bleChip.getAddress());
                     }
                     if(btLeService.getConnectionState()==2){
                         if(onceConnectedFlag){
                             btLeService.disconnect();
+                            bleChip=null;
                         }
                     }
                 }

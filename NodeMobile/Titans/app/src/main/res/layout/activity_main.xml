@@ -31,7 +31,7 @@
         android:layout_height="match_parent"
         android:layout_marginTop="125dp"
         android:layout_marginBottom="50dp"
-        tools:context="com.example.parth.titans.MapsActivity"
+        tools:context="com.example.parth.titans.MainActivity"
         android:layout_alignParentBottom="true"
         android:layout_alignParentStart="true" />
 
@@ -65,7 +65,7 @@
         android:layout_height="wrap_content"
         android:layout_alignTop="@+id/button4"
         android:layout_alignParentStart="true"
-        android:id="@+id/textView"
+        android:id="@+id/gpsView"
         android:layout_toStartOf="@+id/button2"
         android:layout_alignParentBottom="true"
         android:textAlignment="center"
@@ -90,7 +90,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/textView4"
         android:layout_toEndOf="@+id/textView2"
-        android:id="@+id/progressBar2"
+        android:id="@+id/leftProgressBar"
         android:layout_alignBottom="@+id/textView2" />
 
     <TextView
@@ -129,9 +129,9 @@
         style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="180dp"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/progressBar2"
+        android:layout_below="@+id/leftProgressBar"
         android:layout_toEndOf="@+id/textView2"
-        android:id="@+id/progressBar3" />
+        android:id="@+id/centerProgressBar" />
 
     <ProgressBar
         style="?android:attr/progressBarStyleHorizontal"
@@ -139,7 +139,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/textView3"
         android:layout_toEndOf="@+id/textView3"
-        android:id="@+id/progressBar4" />
+        android:id="@+id/rightProgressBar" />
 
     <ProgressBar
         style="?android:attr/progressBarStyleHorizontal"
@@ -147,7 +147,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/textView5"
         android:layout_toEndOf="@+id/textView6"
-        android:id="@+id/progressBar5" />
+        android:id="@+id/rearProgressBar" />
 
     <TextView
         android:text=""
@@ -169,8 +169,8 @@
         android:layout_below="@+id/textView7"
         android:layout_alignParentEnd="true"
         android:id="@+id/textView8"
-        android:layout_toEndOf="@+id/progressBar2"
-        android:layout_alignBottom="@+id/progressBar3"
+        android:layout_toEndOf="@+id/leftProgressBar"
+        android:layout_alignBottom="@+id/centerProgressBar"
         android:textSize="24sp"
         android:textAlignment="center"
         android:gravity="center_vertical" />
@@ -179,11 +179,11 @@
         android:text="0.000 mph"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignTop="@+id/progressBar4"
-        android:id="@+id/textView9"
+        android:layout_alignTop="@+id/rightProgressBar"
+        android:id="@+id/speedView"
         android:layout_alignParentEnd="true"
-        android:layout_toEndOf="@+id/progressBar4"
-        android:layout_alignBottom="@+id/progressBar5"
+        android:layout_toEndOf="@+id/rightProgressBar"
+        android:layout_alignBottom="@+id/rearProgressBar"
         android:gravity="center_vertical"
         android:textAlignment="center"
         android:textColor="@android:color/holo_green_dark"

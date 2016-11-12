@@ -34,13 +34,11 @@ BS_:
 
 BU_: DBG MASTER GPS MOTOR SENSOR APP
 
-BO_ 1 APP_START_STOP: 1 APP
- SG_ APP_START_STOP_cmd : 0|8@1+ (1,0) [0|0] "COMMAND" MASTER
-
-BO_ 80 APP_ROUTE_DATA: 7 APP
- SG_ APP_READOUT_latitude : 0|26@1+ (0.000001,0) [0|0] "" MASTER
- SG_ APP_READOUT_longitude : 26|26@1- (0.000001,0) [0|0] "" MASTER
-
+BO_ 1 APP_START_STOP: 8 APP
+ SG_ APP_START_STOP_cmd : 0|1@1+ (1,0) [0|0] "COMMAND" MASTER
+ SG_ APP_ROUTE_latitude : 1|28@1+ (0.000001,-90.000000) [-90|90] "" MASTER
+ SG_ APP_ROUTE_longitude : 29|29@1+ (0.000001,-180.000000) [-180|180] "" MASTER
+ SG_ APP_FINAL_COORDINATE : 58|1@1+ (1,0) [0|0] "" MASTER
  
 BO_ 16 SENSOR_DATA: 3 SENSOR 
  SG_ SENSOR_left_sensor : 0|8@1+ (1,0) [0|0] "Inches" MASTER,APP 
@@ -65,7 +63,7 @@ BO_ 67 GEO_Header: 3 GPS
  SG_ GPS_DISTANCE_meter: 12|12@1+ (0.1,0) [0.0,400,0] "Meters" MASTER,APP,MOTOR
  
 BO_ 48 MOTOR_STATUS: 2 MOTOR
- SG_ MOTOR_STATUS_speed_mph : 0|16@1+ (0.001,0) [0|0] "mph" MASTER,APP
+ SG_ MOTOR_STATUS_speed_mph : 0|16@1+ (1,0) [0|0] "mph" MASTER,APP
  
 CM_ BU_ MASTER "The master controller driving the car";
 CM_ BU_ MOTOR "The motor controller of the car";
