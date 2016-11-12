@@ -348,4 +348,63 @@ public class BluetoothLeService extends Service {
         }
 
     }
+
+
+    public void writeLatLong(String value) {
+        if (mBluetoothAdapter == null || mBluetoothGatt == null) {
+            Log.w(TAG, "BluetoothAdapter not initialized");
+            return;
+        }
+        /*check if the service is available on the device*/
+        BluetoothGattService mCustomService = mBluetoothGatt.getService(UUID.fromString("0000ffe0-0000-1000-8000-00805f9b34fb"));
+        if(mCustomService == null){
+            Log.w(TAG, "Lati & Long Write BLE Service not found");
+            return;
+        }
+        /*get the read characteristic from the service*/
+        BluetoothGattCharacteristic mWriteCharacteristic = mCustomService.getCharacteristic(UUID.fromString("0000ffe1-0000-1000-8000-00805f9b34fb"));
+        if(mWriteCharacteristic!=null) {
+            mWriteCharacteristic.setValue(value);
+            if(mBluetoothGatt.writeCharacteristic(mWriteCharacteristic) == false){
+                Log.w(TAG, "Failed to write characteristic");
+            }
+            else
+            {
+                Log.w(TAG,"Written Longitude and Latitude");
+            }
+        }
+        else{
+            Log.w(TAG, "mWriteCharac Null");
+        }
+
+    }
+
+    public void writeStartStop(String value) {
+        if (mBluetoothAdapter == null || mBluetoothGatt == null) {
+            Log.w(TAG, "BluetoothAdapter not initialized");
+            return;
+        }
+        /*check if the service is available on the device*/
+        BluetoothGattService mCustomService = mBluetoothGatt.getService(UUID.fromString("0000ffe0-0000-1000-8000-00805f9b34fb"));
+        if(mCustomService == null){
+            Log.w(TAG, "Start & Stop Write BLE Service not found");
+            return;
+        }
+        /*get the read characteristic from the service*/
+        BluetoothGattCharacteristic mWriteCharacteristic = mCustomService.getCharacteristic(UUID.fromString("0000ffe1-0000-1000-8000-00805f9b34fb"));
+        if(mWriteCharacteristic!=null) {
+            mWriteCharacteristic.setValue(value);
+            if(mBluetoothGatt.writeCharacteristic(mWriteCharacteristic) == false){
+                Log.w(TAG, "Failed to write characteristic");
+            }
+            else
+            {
+                Log.w(TAG,"Written Start and Stop");
+            }
+        }
+        else{
+            Log.w(TAG, "mWriteCharac Null");
+        }
+
+    }
 }

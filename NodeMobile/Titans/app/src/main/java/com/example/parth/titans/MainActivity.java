@@ -100,10 +100,13 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     private int leftSensorVal,rightSensorVal,centerSensorVal,rearSensorVal;
     private String receivedData;
     boolean Marker_Set=false;
+    boolean send_lat_long=false;
     LatLng SU=null;
     LatLng Destination=null;
     Marker marker;
     Polyline line=null;
+    private ArrayList<String> Lati;
+    private ArrayList<String> Longi;
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         //polyline=new PolylineOptions();
@@ -199,7 +202,8 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
         @Override
         protected void onPostExecute(List<List<HashMap<String, String>>> routes) {
-
+            Lati = new ArrayList<String>();
+            Longi = new ArrayList<String>();
             ArrayList<LatLng> points = null;
             PolylineOptions polyLineOptions = null;
             // traversing through routes
@@ -214,6 +218,8 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                     double lat = Double.parseDouble(point.get("lat"));
                     double lng = Double.parseDouble(point.get("lng"));
                     LatLng position = new LatLng(lat, lng);
+                    Lati.add(Double.toString(lat*1000000));
+                    Longi.add(Double.toString(lng*1000000));
 
                     points.add(position);
                 }
@@ -227,10 +233,52 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 line.remove();
             line=mMap.addPolyline(polyLineOptions);
 
-
         }
     }
 
+
+    public void SendData()
+    {
+        try {
+            Thread.sleep(10);
+            btLeService.writeLatLong("Size="+Integer.toString(Lati.size()+1));
+        }
+        catch (Exception e)
+        {
+            Log.w("Error",e.toString());
+        }
+        for(int i=0 ; i<Lati.size(); i++)
+        {
+            if(btLeService!=null)
+            {
+                try {
+                    Thread.sleep(10);
+                    btLeService.writeLatLong(Lati.get(i));
+                    Thread.sleep(10);
+                    btLeService.writeLatLong(Longi.get(i));
+                }
+                catch (Exception e)
+                {
+                    Log.w("Error:",e.toString());
+                }
+
+            }
+        }
+        try {
+            Thread.sleep(10);
+            btLeService.writeLatLong(Double.toString(Destination.latitude*1000000));
+            Thread.sleep(10);
+            btLeService.writeLatLong(Double.toString(Destination.longitude*1000000));
+            Thread.sleep(10);
+            btLeService.writeLatLong("Last");
+
+            //send_lat_long=false;
+        }
+        catch (Exception e)
+        {
+            Log.w("Error:",e.toString());
+        }
+    }
 
 
 
@@ -289,7 +337,10 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             }else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
 
 
-                    receivedData = intent.getStringExtra(BluetoothLeService.EXTRA_DATA);
+                //if(send_lat_long)
+                    //SendData();
+
+                receivedData = intent.getStringExtra(BluetoothLeService.EXTRA_DATA);
                     if (!receivedData.equals("")) {
                         if (receivedData.contains("L")) {
                             leftSensorVal = Integer.parseInt(receivedData.substring(receivedData.indexOf('L') + 1,receivedData.indexOf('R')));
@@ -451,17 +502,27 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 if(Marker_Set) {
                     if (startButton.getText().toString().equalsIgnoreCase("START")) {
                         if (btLeService != null) {
-                            btLeService.writeCustomCharacteristic(1);
-                            Log.i("TITANS:", "Write done");
+                            Log.w("Written total size:",Integer.toString(Lati.size()+1));
+                            btLeService.writeStartStop("start");
+                            try {
+                                Thread.sleep(10);
+                            }
+                            catch (Exception e)
+                            {
+
+                            }
+                            SendData();
+                            Log.i("TITANS:", "Start Write done");
                             startButton.setText("STOP");
                             goingFlag=true;
+                            send_lat_long=true;
                             //stopRead=false;
                         }
                     } else {
                         if (btLeService != null) {
                             goingFlag=false;
-                            btLeService.writeCustomCharacteristic(0);
-                            Log.i("TITANS:", "Write done");
+                            btLeService.writeStartStop("stop");
+                            Log.i("TITANS:", "Stop Write done");
                             startButton.setText("START");
 
                         }
