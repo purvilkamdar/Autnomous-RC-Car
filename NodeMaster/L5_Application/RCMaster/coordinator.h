@@ -21,8 +21,9 @@
 #define SENSOR_DATA 16
 #define GPS_Data 65
 #define GPS_Heading 66
+#define GEO_HEADER 67
 #define APP_START_STOP 1
-
+#define DRIVING_AREA 1
 #define MIN_DISTANCE_INCHES       25
 #define MED_DISTANCE_INCHES       40
 #define SIDE_MIN_DISTANCE_INCHES  25
@@ -45,15 +46,25 @@ public:
 	int steer_cmd;
 	status_t status;
 	order_t  order;
+	bool start_iterator;
 private:
 	MotorControl *itsMotorNode;
 	SensorsControl *itsSensorNode;
 	GeoControl *itsGeoNode;
 	MobileControl *itsMobileNode;
 	TrajectoryEngine *itsTrajectoryEngine;
+	int current_state;
+	int next_state;
  //comment
 	//friend class SingletonTemplate<coordinator>;
 
+};
+
+enum coordinator_state {
+coordinator_idle,
+build_trajectory,
+driving_indoors,
+driving
 };
 
 #endif /* L5_APPLICATION_RCMASTER_COORDINATOR_H_ */

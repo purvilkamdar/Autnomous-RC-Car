@@ -31,6 +31,12 @@ typedef struct status_t {
 	int app_cmd;
 	double gps_lat;
 	double gps_long;
+	int app_lat;
+	int app_long;
+	int app_final_coord;
+    int distance;
+    int angle;
+	bool  app_coord_rdy;
 	int    compass_heading;
 	int    sensor_right;
 	int    sensor_left;
@@ -48,6 +54,9 @@ typedef struct status_t {
 typedef struct order_t {
 	int speed_order;
 	int steer_order;
+	bool start_coord;
+	int app_latitude;
+	int app_longitude;
 }order_t;
 
 

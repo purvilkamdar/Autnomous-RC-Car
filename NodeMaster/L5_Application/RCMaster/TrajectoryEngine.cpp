@@ -31,6 +31,7 @@ void TrajectoryEngine::run_trajectory (status_t& status, order_t& order) {
 		status.app_cmd = stop;
 	}
 #endif
+
 	switch (current_state){
 	case (idle): // TODO remove comment when app is used
       if (status.app_cmd == drive )

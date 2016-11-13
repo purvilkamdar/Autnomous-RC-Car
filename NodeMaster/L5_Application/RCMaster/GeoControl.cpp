@@ -52,3 +52,42 @@ void GeoControl::checkHeading(status_t& status){
 
 
 }
+
+void GeoControl::getCheckpoints(status_t& status)
+{
+checkpoints.app_lat=status.app_lat;
+checkpoints.app_long=status.app_long;
+app_checkpoints.push_back(checkpoints);
+}
+bool GeoControl::start_iteration()
+{
+iterate_checkpoints = app_checkpoints.begin();
+}
+
+bool GeoControl::on_target_reached(status_t& status)
+{
+	if(status.distance<=MIN_TARGET_DIST)
+	{
+		return true;
+	}
+	else
+		return false;
+}
+bool GeoControl::extractCheckpoints(order_t& order,status_t& status)
+{
+	send_checkpoints = (*iterate_checkpoints);
+	order.app_latitude=send_checkpoints.app_lat;
+	order.app_longitude=send_checkpoints.app_long;
+	if(!is_last_checkpoint())
+	{
+		++iterate_checkpoints;
+	}
+//	else
+		return false;
+	//return
+}
+
+bool GeoControl::is_last_checkpoint()
+{
+	return(iterate_checkpoints==app_checkpoints.end());
+}
