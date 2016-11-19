@@ -52,6 +52,9 @@ coordinator* NodeCoordinator = new coordinator();
 
 bool period_init(void)
 {
+    /**
+     * TODO : Jon : Move to single function void can_init(void)
+     */
 	CAN_init(can1,100,10,10,NULL,NULL);
 	CAN_bypass_filter_accept_all_msgs();
 	CAN_reset_bus(can1);

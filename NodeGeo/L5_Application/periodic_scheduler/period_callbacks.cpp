@@ -134,6 +134,12 @@ void period_10Hz(uint32_t count)
 /*-----NEED TO DO: need MASTER's msg id to retrieve next checkpoint GPS coordinate.The received coordinates will be used to calculate---*/
 /*-----------------both angle of error and distance and then sends the data back to the MASTER using GEO's msg id 67------*/
 
+
+	/**
+	 * TODO: Jon : Is while loop necessary here? If everyone is sending their CAN messages at
+	 *              10Hz frequency then you don't need to poll in a while loop and you can just
+	 *              perform a single if (CAN_rx()) check.
+	 */
 	while(CAN_rx(can1, &can_msg,0))
 	{
 		dbc_msg_hdr_t can_msg_hdr;
@@ -157,6 +163,8 @@ void period_10Hz(uint32_t count)
 					LD.setNumber(int_distance);
 		}
 	}
+
+	// TODO : Jon : Delete?
 
 //	if(dbc_handle_mia_MASTER_HB(&master_hb,100))
 //	{

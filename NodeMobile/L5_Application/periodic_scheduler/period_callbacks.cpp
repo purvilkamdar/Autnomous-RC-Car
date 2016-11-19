@@ -47,6 +47,11 @@ const uint32_t PERIOD_TASKS_STACK_SIZE_BYTES = (512 * 4);
  * printf inside these functions, you need about 1500 bytes minimum
  */
 const uint32_t PERIOD_DISPATCHER_TASK_STACK_SIZE_BYTES = (512 * 3);
+
+/**
+ * TODO : Jon : Clean up declarations below either by making the variable names
+ *              more descriptive or add comments to them
+ */
 Uart2 &u2 = Uart2::getInstance();
 //char* msg = new char[10];
 char *size = new char[2];
@@ -133,7 +138,9 @@ void period_10Hz(uint32_t count) {
 		//printf("%s", msg);
 	//}
 
-
+    /**
+     * TODO: Jon : Put all of this code into a single static function
+     */
 
 	char* data=new char[20];
 	sprintf(data,"L%02dR%02dC%02dB%02dSPD%0.3f",left,right,center,rear,speed);
@@ -162,7 +169,7 @@ void period_10Hz(uint32_t count) {
 		{
 			dbc_decode_MASTER_HB(&heartbeat, can_msg.data.bytes, &can_msg_hdr);
 			if(last_counter!=0 && last_counter<=n)
-					{
+					{ // TODO : Jon : nit: spacing
 						start_cmd.APP_ROUTE_latitude=s_latitude[counter];
 						start_cmd.APP_ROUTE_longitude=s_longitude[counter];
 						if(counter!=lat_counter-1)
@@ -209,6 +216,7 @@ void period_10Hz(uint32_t count) {
 			longitude=gpsdata.GPS_READOUT_longitude;
 		}
 	}
+	// TODO: Jon : handle_mia_status_leds();
 	if (dbc_handle_mia_MASTER_HB(&heartbeat, 100)) {
 		LD.clear();
 		LD.setRightDigit('1');
@@ -233,6 +241,10 @@ void period_10Hz(uint32_t count) {
 }
 
 void period_100Hz(uint32_t count) {
+    /**
+     * TODO: Jon : Put all of this code into a single static function
+     */
+
 	//APP_START_STOP_t data = {0};
 	//data.APP_FINAL_COORDINATE=0;
 	char *stat=new char[8];

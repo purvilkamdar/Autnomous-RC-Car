@@ -24,6 +24,9 @@
  */
 void serialInit(void)
 {
+    /**
+     * TODO : Jon : Move the can_init stuff to period_init()?
+     */
 	Uart3::getInstance().init(57600,1,0);
 	Uart2::getInstance().init(115200,75,0);
 	CAN_init(can1,100,5,5,NULL,NULL);
