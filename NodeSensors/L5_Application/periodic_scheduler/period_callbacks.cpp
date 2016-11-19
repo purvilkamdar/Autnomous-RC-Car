@@ -79,6 +79,7 @@ static SemaphoreHandle_t Send_CAN_Msg = 0; //semaphore variable
 
 typedef struct ModeFilter
 {
+    // TODO : Jon : nit: spacing
 int sum[BUCKETS];
 int count[BUCKETS];
 int MAX;
@@ -101,6 +102,7 @@ int HashIt(int Val)
 	return (Val / 12);
 }
 
+// TODO : Jon : nit: spacing on all functions below
 void Reset_filters()
 {
 for(int i=0;i<BUCKETS;i++)
@@ -214,7 +216,7 @@ bool period_init(void)
 		 //Start the CAN bus
 		 CAN_reset_bus(can1);
 
-
+		 // TODO : Jon : nit: spacing through here
 	      vSemaphoreCreateBinary(Send_CAN_Msg);
 
 	      sensor_trigger_left.setAsOutput();
@@ -265,8 +267,11 @@ can_msg_t can_msg_tx;
 
 void period_10Hz(uint32_t count)
 {
+    // TODO : Jon : If this semaphore is given every 100ms, isn't that the same
+    //              as this function being called every 100ms? So, do you need this semaphore then?
 	if(xSemaphoreTake(Send_CAN_Msg, 0))
 			{
+	    // TODO : Jon : nit: spacing
 			LE.toggle(4);
 			ApplyFilter();
 			sonic_sensor_data.SENSOR_left_sensor = left_filter.filtered_val;
@@ -305,6 +310,7 @@ void period_100Hz(uint32_t count)
 
          }
 
+       // TODO : Jon : Single static functions : handle_mia_led_and_bus_reset();
        if(dbc_handle_mia_MASTER_HB(&master_hb_msg,10))
     	   LD.setNumber(0);
 
@@ -320,6 +326,7 @@ void period_1000Hz(uint32_t count)
 		static int count_100 = 0;
 		count_100 ++;
 
+		// TODO: Jon : nit: spacing
 		switch(sensor)
 		{
 		case LEFT: //trigger left sensor
