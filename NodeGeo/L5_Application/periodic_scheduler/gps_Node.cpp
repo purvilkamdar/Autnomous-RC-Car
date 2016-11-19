@@ -7,8 +7,10 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "io.hpp"
 #include "uart3.hpp"
 #include "uart2.hpp"
+#include "i2c2.hpp"
 #include "string.h"
 #include "gps_Node.h"
 #include "_can_dbc/generated_can.h"
@@ -24,6 +26,7 @@
  */
 void serialInit(void)
 {
+	I2C2::getInstance().init(100);
 	Uart3::getInstance().init(57600,1,0);
 	Uart2::getInstance().init(115200,75,0);
 	CAN_init(can1,100,5,5,NULL,NULL);
@@ -54,13 +57,15 @@ void check_reset_canbus(void)
  *
  * This functions uses vectors to find the arc-cosine of the angle
  */
-double angleOfError(double current_lat, double current_long, double destination_lat, double destination_long, double compass_angle)
+double angleOfError(GPS_DATA *gps_data, double destination_lat, double destination_long, double compass_angle)
 {
 	struct Coordinates{
 		double x;
 		double y;
 	} current_A, projection_B, destination_C, vector_P, vector_R;
 
+	if(gps_data->valid_bit)
+	{
 	double angle = 0;
 	double angle_abs_difference = 0;
 	double angle_final = 0;
@@ -70,12 +75,12 @@ double angleOfError(double current_lat, double current_long, double destination_
 	double magnitude_P = 0;
 
 	/*---Reassigning input to better visual them as coordinates---*/
-	current_A.x = current_long;
-	current_A.y = current_lat;
+	current_A.x = gps_data->longitude;
+	current_A.y = gps_data->latitude;
 	destination_C.x = destination_long;
 	destination_C.y = destination_lat;
-	projection_B.x = current_long;
-	projection_B.y = current_lat + 0.1;
+	projection_B.x = gps_data->longitude;
+	projection_B.y = gps_data->latitude + 0.1;
 
 	/*---Vector AB-> (vector of car position to its destination)  is equal to A-C ---*/
 	vector_R.x = projection_B.x - current_A.x;
@@ -132,7 +137,9 @@ double angleOfError(double current_lat, double current_long, double destination_
 	}
 
 	return angle_final;
-
+	}
+	else
+		return 88;
 }
 
 
@@ -140,18 +147,20 @@ double angleOfError(double current_lat, double current_long, double destination_
  * Function takes in two GPS coordinates then calculates the actual distance in Meter between them.
  * This is used to monitor the distance between the car and its targeted location.
  */
-double distanceToTargetLocation(double current_lat, double current_long, double destination_lat, double destination_long)
+double distanceToTargetLocation(GPS_DATA *gps_data, double destination_lat, double destination_long)
 {
     struct Coordinates{
 		double x;
 		double y;
 	} current_A, destination_B, vector_R;
 
+	if (gps_data->valid_bit)
+	{
 	double distance = 0;
 	double magnitude = 0;
 
-	current_A.x = current_lat;
-	current_A.y = current_long;
+	current_A.x = gps_data->latitude;
+	current_A.y = gps_data->longitude;
 	destination_B.x = destination_lat;
 	destination_B.y = destination_long;
 
@@ -161,9 +170,23 @@ double distanceToTargetLocation(double current_lat, double current_long, double 
 	magnitude = sqrt(pow(vector_R.x,2)+pow(vector_R.y,2));
 	printf("Magnitude = %f\n", magnitude);
 
-	distance = (magnitude/decimalDegrees)*meterPerDecimalDegree(current_lat);
+	distance = (magnitude/decimalDegrees)*meterPerDecimalDegree(gps_data->latitude);
+
+	/*---Updates 8-segment display to show current distance to checkpoint (in meters)---*/
+	if((int)distance >= 99)
+		LD.setNumber(99);
+	else
+		LD.setNumber((int)distance);
 
 	return distance;
+
+	}
+	else
+		{
+		LD.setLeftDigit('F');
+		LD.setRightDigit('F');
+		return 0;
+		}
 }
 
 /*
@@ -218,7 +241,7 @@ void get_GPS(gps_name addr, GPS_DATA *data_r)
 	/*  Read string of GPS data into buffer data[] */
 	u2.gets(data,128,0);
 
-	printf("GPS: %s\n",data); //Print out for debugging
+	//printf("GPS: %s\n",data); //Print out for debugging
 
 	/* Copy GPS Address Code from data[] into array addrCode[] */
 	for(i=0; i<5; i++)
@@ -254,8 +277,8 @@ void get_GPS(gps_name addr, GPS_DATA *data_r)
 			temp_Latitude = atof(strtok(NULL, &parser));
 			strtok(NULL, &parser);
 			temp_Longitude = atof(strtok(NULL, &parser));
-			data_r->latitude = floatToDecimalDegree(temp_Latitude);
-			data_r->longitude = floatToDecimalDegree(temp_Longitude)*(-1);
+			data_r->latitude = floatToDecimalDegree(temp_Latitude) + LATTIDUE_OFFSET;
+			data_r->longitude = (-1)*floatToDecimalDegree(temp_Longitude) + LONGITUDE_OFFSET;
 
 //			printf("Valid bit = %d\n", data_r->valid_bit);
 //			printf("Counter =   %d\n", data_r->counter);

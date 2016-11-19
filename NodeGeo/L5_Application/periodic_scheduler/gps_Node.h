@@ -7,6 +7,7 @@
 #ifndef L5_APPLICATION_PERIODIC_SCHEDULER_GPS_NODE_H_
 #define L5_APPLICATION_PERIODIC_SCHEDULER_GPS_NODE_H_
 
+
 /*
  * Defines all GPS Address types.
  * Converts these types into string so that strcpy() function can take them in as a parameter
@@ -26,6 +27,12 @@ const char * const gps_addr[] = { GPS };
 #define decimalDegrees 0.000001
 #define meterPerDecimalDegree(latitude) ((0.00005*pow(latitude,3) - 0.01912*pow(latitude,2) + 0.02642*latitude + 111.32)*0.001)
 
+/* Performs an offset to the coordinates received from GPS module to match closer to what google map gives */
+#define LATTIDUE_OFFSET 0.000011;
+#define LONGITUDE_OFFSET 0.000000;
+
+#define LCD_ADDR 0x3F
+
 typedef struct{
 	int valid_bit;
 	uint16_t counter;
@@ -39,9 +46,9 @@ void check_reset_canbus(void);
 
 float floatToDecimalDegree(float strDegree);
 
-double angleOfError( double current_lat, double current_long, double destination_lat, double destination_long, double compass_angle);
+double angleOfError(GPS_DATA *gps_data, double destination_lat, double destination_long, double compass_angle);
 
-double distanceToTargetLocation(double current_lat, double current_long, double destination_lat, double destination_long);
+double distanceToTargetLocation(GPS_DATA *gps_data, double destination_lat, double destination_long);
 
 void get_GPS(gps_name addr, GPS_DATA *data_r);
 /*----- GPS Address and their Types of Data-----*/
