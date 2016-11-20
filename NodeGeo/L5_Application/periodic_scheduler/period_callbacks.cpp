@@ -44,8 +44,8 @@
  * Switches between test-code and run-code. 1 for test code. 0 for run code.
  */
 #define TEST_GPS 1
-#define test_dest_latitude 37.071335
-#define test_dest_longitude -120.853961
+#define test_dest_latitude 37.336829
+#define test_dest_longitude -121.882407
 
 COMPASS_Data_t COMPASS_Value = {0};
 GPS_Data_t gps_rx_data = {0};

@@ -43,6 +43,11 @@ void get_compass_data(COM_DATA *compassData)
 	//printf("%s\n",temp);
 
 	heading = atoi(temp);
+
+	heading = heading + 13;
+
+	if(heading >=360)
+		heading = heading - 360;
 	//printf("%0.2f\n",x);
 	//heading = x;
 	//sscanf(temp,"%f",&heading);
