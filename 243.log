@@ -3,6 +3,10 @@ Conversion Warnings Log
 
 MSG_ID: 1 	MSG_TYPE: S 	MSG_NAME: APP_START_STOP
 	SIG_NAME: APP_START_STOP_cmd, STATUS: Invalid Max or Min value., ACTION: Value Set to default
+	SIG_NAME: APP_ROUTE_latitude, STATUS: Invalid Max or Min value., ACTION: Value Set to default
+	SIG_NAME: APP_ROUTE_longitude, STATUS: Invalid Max or Min value., ACTION: Value Set to default
+	SIG_NAME: APP_FINAL_COORDINATE, STATUS: Invalid Max or Min value., ACTION: Value Set to default
+	SIG_NAME: APP_COORDINATE_READY, STATUS: Invalid Max or Min value., ACTION: Value Set to default
 
 MSG_ID: 16 	MSG_TYPE: S 	MSG_NAME: SENSOR_DATA
 	SIG_NAME: SENSOR_left_sensor, STATUS: Invalid Max or Min value., ACTION: Value Set to default
@@ -12,10 +16,12 @@ MSG_ID: 16 	MSG_TYPE: S 	MSG_NAME: SENSOR_DATA
 MSG_ID: 32 	MSG_TYPE: S 	MSG_NAME: MASTER_HB
 	SIG_NAME: MASTER_SPEED_cmd, STATUS: Invalid Max or Min value., ACTION: Value Set to default
 	SIG_NAME: MASTER_STEER_cmd, STATUS: Invalid Max or Min value., ACTION: Value Set to default
+	SIG_NAME: MASTER_LAT_cmd, STATUS: Invalid Max or Min value., ACTION: Value Set to default
+	SIG_NAME: MASTER_LONG_cmd, STATUS: Invalid Max or Min value., ACTION: Value Set to default
+	SIG_NAME: MASTER_START_COORD, STATUS: Invalid Max or Min value., ACTION: Value Set to default
 
-MSG_ID: 65 	MSG_TYPE: S 	MSG_NAME: GPS_Data
-	SIG_NAME: GPS_READOUT_latitude, STATUS: Invalid Max or Min value., ACTION: Value Set to default
-	SIG_NAME: GPS_READOUT_longitude, STATUS: Invalid Max or Min value., ACTION: Value Set to default
+MSG_ID: 66 	MSG_TYPE: S 	MSG_NAME: COMPASS_Data
+	SIG_NAME: COMPASS_Heading, STATUS: Invalid Max or Min value., ACTION: Value Set to default
 
 MSG_ID: 48 	MSG_TYPE: S 	MSG_NAME: MOTOR_STATUS
 	SIG_NAME: MOTOR_STATUS_speed_mph, STATUS: Invalid Max or Min value., ACTION: Value Set to default

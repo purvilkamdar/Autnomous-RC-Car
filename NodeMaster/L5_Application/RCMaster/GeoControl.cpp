@@ -62,6 +62,12 @@ app_checkpoints.push_back(checkpoints);
 bool GeoControl::start_iteration()
 {
 iterate_checkpoints = app_checkpoints.begin();
+/*do{
+printf("%x\n",(*iterate_checkpoints).app_lat);
+printf("%x\n",(*iterate_checkpoints).app_long);
+++iterate_checkpoints;
+}while(!(iterate_checkpoints==app_checkpoints.end()));*/
+return true;
 }
 
 bool GeoControl::on_target_reached(status_t& status)
@@ -83,7 +89,7 @@ bool GeoControl::extractCheckpoints(order_t& order,status_t& status)
 		++iterate_checkpoints;
 	}
 //	else
-		return false;
+		return true;
 	//return
 }
 

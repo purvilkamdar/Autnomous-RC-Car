@@ -172,7 +172,20 @@ void coordinator::processAndSendOrder(status_t& status, order_t& order){
 	itsSensorNode->check_sensors(status);
 	itsGeoNode->checkHeading(status);
 	//itsGeoNode->getCheckpoints(status);
-    itsTrajectoryEngine->run_trajectory(status, order);
+ //   itsTrajectoryEngine->run_trajectory(status, order);
+  /*  if(!status.app_final_coord)
+        {
+        			itsGeoNode->getCheckpoints(status);
+        }
+    itsGeoNode->start_iteration();
+    do
+    {
+
+      itsGeoNode->extractCheckpoints(order,status);
+      printf("The latitude is %x\n",order.app_latitude);
+      printf("The longitude is %x\n",order.app_longitude);
+    }
+   while(!itsGeoNode->is_last_checkpoint());*/
      switch(current_state)
     {
     case (coordinator_idle):
@@ -209,7 +222,8 @@ void coordinator::processAndSendOrder(status_t& status, order_t& order){
     		break;
     case(driving):
 		next_state=driving;
-		 if(itsGeoNode->on_target_reached(status))
+
+		// if(itsGeoNode->on_target_reached(status))
 		 {
 			 itsGeoNode->extractCheckpoints(order,status);
 			if(itsGeoNode->is_last_checkpoint())
@@ -218,7 +232,7 @@ void coordinator::processAndSendOrder(status_t& status, order_t& order){
 			}
 		 }
 		// else
-
+		 itsTrajectoryEngine->run_trajectory(status, order);
     		break;
 
     }

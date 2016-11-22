@@ -21,11 +21,11 @@ void SensorsControl::setName(){
 }
 
 void SensorsControl::printThresholds(void){
-	printf("med_sensor_dist: %d\n", med_sensor_dist);
+	/*printf("med_sensor_dist: %d\n", med_sensor_dist);
 	printf("min_sensor_dist: %d\n", min_sensor_dist);
 	printf("side_med_sensor_dist: %d\n", side_med_sensor_dist);
 	printf("side_min_sensor_dist: %d\n", side_min_sensor_dist);
-
+*/
 }
 
 void SensorsControl::check_sensors(status_t& status){
@@ -71,9 +71,9 @@ void SensorsControl::check_sensors(status_t& status){
 	status.right_state = right_state;
 	status.left_state = left_state;
     if (debug_ctr++ > 10){
-    	printf("status.center_state = %d\n",center_state);
+    	/*printf("status.center_state = %d\n",center_state);
     	printf("status.right_state = %d \n",right_state);
-    	printf("status.left_state = %d \n",left_state);
+    	printf("status.left_state = %d \n",left_state);*/
     	printThresholds();
     	debug_ctr = 0;
     }
