@@ -7,6 +7,7 @@
 #ifndef L5_APPLICATION_PERIODIC_SCHEDULER_GPS_NODE_H_
 #define L5_APPLICATION_PERIODIC_SCHEDULER_GPS_NODE_H_
 
+
 /*
  * Defines all GPS Address types.
  * Converts these types into string so that strcpy() function can take them in as a parameter
@@ -18,6 +19,20 @@ enum gps_name { GPS CODE };
 #define C(x) #x,
 const char * const gps_addr[] = { GPS };
 
+/* Defines each 0.000001 decimal degree equals to the meter value meterPerDecimalDegree produces at provided latitude.
+ * @meterPerDecimalDegree This equation is calculated from "Degree precision versus length" table from wikipedia.org
+ * 		At different latitude, the amount of distance per 0.000001 decimal degree are different
+ * These values are used to calculate the distance between the car and its targeted destination or way point.
+ */
+#define decimalDegrees 0.000001
+#define meterPerDecimalDegree(latitude) ((0.00005*pow(latitude,3) - 0.01912*pow(latitude,2) + 0.02642*latitude + 111.32)*0.001)
+
+/* Performs an offset to the coordinates received from GPS module to match closer to what google map gives */
+#define LATTIDUE_OFFSET 0.000011;
+#define LONGITUDE_OFFSET 0.000000;
+
+#define LCD_ADDR 0x3F
+
 typedef struct{
 	int valid_bit;
 	uint16_t counter;
@@ -26,13 +41,16 @@ typedef struct{
 }GPS_DATA;
 
 void serialInit(void);
+
 void check_reset_canbus(void);
 
-uint32_t floatToDecimalDegree(float strDegree);
+float floatToDecimalDegree(float strDegree);
 
-double angleOfApproach(double start_lat, double start_long, double destination_lat, double destination_long, double current_lat, double current_long);
+double angleOfError(GPS_DATA *gps_data, double destination_lat, double destination_long, double compass_angle);
 
-void readGPS(gps_name addr, GPS_DATA *data_r);
+double distanceToTargetLocation(GPS_DATA *gps_data, double destination_lat, double destination_long);
+
+void get_GPS(gps_name addr, GPS_DATA *data_r);
 /*----- GPS Address and their Types of Data-----*/
 /*
 GNVTG - 	Course and speed relative to the ground.
@@ -54,6 +72,8 @@ GLGSV -		Satellite information about elevation, azimuth and CNR, $GPGSV is used 
 GNGLL - 	Position, time and fix status.
 
 GNRMC - 	Time, date, position, course and speed data.
+
+GPRMC - 	Time, date, position, course and speed data.
  */
 
 bool dbc_app_send_can_msg(uint32_t mid, uint8_t dlc, uint8_t bytes[8]);

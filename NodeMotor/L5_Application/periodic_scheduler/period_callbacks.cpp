@@ -165,6 +165,7 @@ void period_10Hz(uint32_t count)
 {
 	can_msg_t can_msg;
 
+	// TODO : Jon : Consider if while loop is necessary here
 	        // Empty all of the queued, and received messages within the last 10ms (100Hz callback frequency)
 	       while (CAN_rx(can1, &can_msg, 0))
 	        {
@@ -256,6 +257,7 @@ void period_10Hz(uint32_t count)
 
 	        }
 
+	       // TODO : Single functions? handle_mia_and_led_status(); ?
 	       	if(dbc_handle_mia_MASTER_HB(&master_can_msg,10))
 	       	{
 	       		carSpeed.set(SPEED_LEVEL_STOP);
