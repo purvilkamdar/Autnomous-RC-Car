@@ -40,6 +40,7 @@ import android.widget.Toast;
 import android.os.AsyncTask;
 import org.json.*;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -107,6 +108,8 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     Polyline line=null;
     private ArrayList<String> Lati;
     private ArrayList<String> Longi;
+    DecimalFormat decimalFormat = new DecimalFormat("#.000000");
+    String sending_string = new String();
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         //polyline=new PolylineOptions();
@@ -218,17 +221,20 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                     double lat = Double.parseDouble(point.get("lat"));
                     double lng = Double.parseDouble(point.get("lng"));
                     LatLng position = new LatLng(lat, lng);
-                    Lati.add(Double.toString(lat*1000000));
-                    Longi.add(Double.toString(lng*1000000));
+                    //Lati.add(decimalFormat.format(lat));
+                    //Longi.add(decimalFormat.format(lng));
+                    Lati.add(decimalFormat.format(lat).substring(decimalFormat.format(lat).indexOf('.')+1));
+                    Longi.add(decimalFormat.format(Math.abs(lng)).substring(decimalFormat.format(Math.abs(lng)).indexOf('.')+1));
+                    //Log.w(Double.toString(lat),Double.toString(lng));
 
                     points.add(position);
                 }
-
+                Log.w("Waypoints="+Lati.toString(),Longi.toString());
                 polyLineOptions.addAll(points);
                 polyLineOptions.width(10);
                 polyLineOptions.color(Color.RED);
             }
-            Log.i("Reached", "Reached");
+            //Log.i("Reached", "Reached");
             if(line!=null)
                 line.remove();
             line=mMap.addPolyline(polyLineOptions);
@@ -241,7 +247,10 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     {
         try {
             Thread.sleep(10);
-            btLeService.writeLatLong("Size="+Integer.toString(Lati.size()+1));
+            btLeService.writeLatLong("Size");
+            Thread.sleep(10);
+            btLeService.writeLatLong(Integer.toString(Lati.size()+1));
+
         }
         catch (Exception e)
         {
@@ -252,10 +261,20 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             if(btLeService!=null)
             {
                 try {
+                    //if(i%2==0)
+                        //Thread.sleep(1000);
+                    //Thread.sleep(10);
+                    //btLeService.writeLatLong("Latitude");
                     Thread.sleep(10);
-                    btLeService.writeLatLong(Lati.get(i));
-                    Thread.sleep(10);
-                    btLeService.writeLatLong(Longi.get(i));
+                    //btLeService.writeLatLong("#"+Lati.get(i));
+                    sending_string="#"+Lati.get(i)+"%"+Longi.get(i);
+                    btLeService.writeLatLong(sending_string);
+                    Log.w("Sent data=",sending_string);
+                    //Thread.sleep(10);
+                    //btLeService.writeLatLong("Longitude");
+                    //Thread.sleep(10);
+                    //btLeService.writeLatLong("%"+Longi.get(i));
+                    //Log.w("Longitude=",Longi.get(i));
                 }
                 catch (Exception e)
                 {
@@ -265,10 +284,20 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             }
         }
         try {
+            //Thread.sleep(10);
+            //btLeService.writeLatLong("Latitude");
             Thread.sleep(10);
-            btLeService.writeLatLong(Double.toString(Destination.latitude*1000000));
-            Thread.sleep(10);
-            btLeService.writeLatLong(Double.toString(Destination.longitude*1000000));
+            //btLeService.writeLatLong("#"+decimalFormat.format(Destination.latitude));
+            sending_string="#"+decimalFormat.format(Destination.latitude).substring(decimalFormat.format(Destination.latitude).indexOf('.')+1);
+            sending_string=sending_string+"%"+Double.toString(Math.abs(Destination.longitude)).substring(decimalFormat.format(Math.abs(Destination.longitude)).indexOf('.')+1);
+            btLeService.writeLatLong(sending_string);
+            Log.w("Sent data=",sending_string);
+            //Log.w("Latitude",decimalFormat.format(Destination.latitude));
+            //Thread.sleep(10);
+            //btLeService.writeLatLong("Longitude");
+            //Thread.sleep(10);
+            //btLeService.writeLatLong("%"+decimalFormat.format(Math.abs(Destination.longitude)));
+            //Log.w("Longitude",Double.toString(Math.abs(Destination.longitude)));
             Thread.sleep(10);
             btLeService.writeLatLong("Last");
 
@@ -278,6 +307,8 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         {
             Log.w("Error:",e.toString());
         }
+
+
     }
 
 
