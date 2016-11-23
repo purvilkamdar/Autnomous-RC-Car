@@ -204,7 +204,7 @@ void period_10Hz(uint32_t count) {
 				{
 					start_cmd.APP_ROUTE_latitude=s_latitude[counter];
 					start_cmd.APP_ROUTE_longitude=s_longitude[counter];
-					if(print_counter==(lat_counter-1))
+					if(counter==(lat_counter-1))
 						start_cmd.APP_FINAL_COORDINATE=1;
 					else
 						start_cmd.APP_FINAL_COORDINATE=0;
