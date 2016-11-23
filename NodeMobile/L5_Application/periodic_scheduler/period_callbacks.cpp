@@ -65,10 +65,10 @@ float latitude=0,longitude=0,speed=0,temporary_latitude_value=0,temporary_longit
 volatile int n=0;
 int lat1,lat2,lat3,lat4,lat5,lat6,lon1,lon2,lon3,lon4,lon5,lon6;
 char a[1];
-//int s_latitude[100];
-//int s_longitude[100];
-float* s_latitude = new float[100];
-float* s_longitude = new float[100];
+int s_latitude[100];
+int s_longitude[100];
+//float* s_latitude = new float[100];
+//float* s_longitude = new float[100];
 int count_semaphore=0;
 int counter=0;
 volatile int print_counter=0;
@@ -156,7 +156,7 @@ void period_10Hz(uint32_t count) {
 		{
 			printf("The value of n is:%d \n",n);
 			printf("The value of counter is %d \n",lat_counter);
-			printf("%d) Co-ordinates=%f,%f \n",print_counter,s_latitude[print_counter],s_longitude[print_counter]);
+			printf("%d) Co-ordinates=%d,%d \n",print_counter,s_latitude[print_counter],s_longitude[print_counter]);
 		}
 		print_counter++;
 	}*/
@@ -329,8 +329,8 @@ void period_100Hz(uint32_t count) {
 					lon6=stat[13]-'0';
 
 
-					temporary_latitude_value=37+(lat1*0.1)+(lat2*0.01)+(lat3*0.001)+(lat4*0.0001)+(lat5*0.00001)+(lat6*0.000001);
-					temporary_longitude_value=121+(lon1*0.1)+(lon2*0.01)+(lon3*0.001)+(lon4*0.0001)+(lon5*0.00001)+(lon6*0.000001);
+					temporary_latitude_value=(37+(lat1*0.1)+(lat2*0.01)+(lat3*0.001)+(lat4*0.0001)+(lat5*0.00001)+(lat6*0.000001))*1000000;
+					temporary_longitude_value=(121+(lon1*0.1)+(lon2*0.01)+(lon3*0.001)+(lon4*0.0001)+(lon5*0.00001)+(lon6*0.000001))*1000000;
 					int repeat_counter;
 					for(repeat_counter=0;repeat_counter<lat_counter;repeat_counter++)
 					{
