@@ -48,9 +48,9 @@ BO_ 80 APP_ROUTE_DATA: 8 APP
 
  
 BO_ 16 SENSOR_DATA: 3 SENSOR 
- SG_ SENSOR_left_sensor : 0|8@1+ (1,0) [0|0] "Inches" MASTER,APP 
- SG_ SENSOR_middle_sensor : 8|8@1+ (1,0) [0|0] "Inches" MASTER,APP 
- SG_ SENSOR_right_sensor : 16|8@1+ (1,0) [0|0] "Inches" MASTER,APP 
+ SG_ SENSOR_left_sensor : 0|8@1+ (1,0) [0|0] "Inches" MASTER,APP,MOTOR
+ SG_ SENSOR_middle_sensor : 8|8@1+ (1,0) [0|0] "Inches" MASTER,APP,MOTOR
+ SG_ SENSOR_right_sensor : 16|8@1+ (1,0) [0|0] "Inches" MASTER,APP,MOTOR
 
 BO_ 32 MASTER_HB: 8 MASTER 
  SG_ MASTER_SPEED_cmd : 0|3@1+ (1,0) [0|0] "" SENSOR,MOTOR,GPS,APP
