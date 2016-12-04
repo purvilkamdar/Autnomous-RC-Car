@@ -109,7 +109,7 @@ double angleOfError(GPS_DATA *gps_data, double destination_lat, double destinati
 	/*---Checks if destination_longitude is less than current_longitude and change sign of angle to mark if destination is on East(+) or West(-) side.---*/
 	if(destination_C.x < current_A.x)
 		angle = angle*(-1);
-		printf("Angle with respect to North = %f\n", angle);
+//	printf("Angle with respect 2to North = %f\n", angle);
 	/*---Perform an offset to compass heading once it reads over 180 degree. This is to help next calculation.---*/
 	if(compass_angle > 180)
 		compass_new = (-1)*(360 - compass_angle);
@@ -168,7 +168,7 @@ double distanceToTargetLocation(GPS_DATA *gps_data, double destination_lat, doub
 	vector_R.y = current_A.y - destination_B.y;
 
 	magnitude = sqrt(pow(vector_R.x,2)+pow(vector_R.y,2));
-	printf("Magnitude = %f\n", magnitude);
+	//printf("Magnitude = %f\n", magnitude);
 
 	distance = (magnitude/decimalDegrees)*meterPerDecimalDegree(gps_data->latitude);
 
@@ -262,10 +262,11 @@ void get_GPS(gps_name addr, GPS_DATA *data_r)
 		float temp_Latitude=0;
 		float temp_Longitude=0;
 
-		printf("\nGPS Data = %s\n",data);
+		//printf("\nGPS Data = %s\n",data);
 		strtok(data, &parser);
-		printf("GPS Addr Type: %s\n", addrCode);
-		printf("GPS Time Type: %s\n", strtok(NULL, &parser));
+		//printf("GPS Addr Type: %s\n", addrCode);
+		strtok(NULL, &parser);
+		//printf("GPS Time Type: %s\n", strtok(NULL, &parser));
 		valid_bit = strtok(NULL, &parser);
 
 		//Checks to see if GPS data is valid
@@ -281,7 +282,7 @@ void get_GPS(gps_name addr, GPS_DATA *data_r)
 			data_r->longitude = (-1)*floatToDecimalDegree(temp_Longitude) + LONGITUDE_OFFSET;
 
 //			printf("Valid bit = %d\n", data_r->valid_bit);
-//			printf("Counter =   %d\n", data_r->counter);
+////			printf("Counter =   %d\n", data_r->counter);
 //			printf("Latitude =  %f\n", data_r->latitude);
 //			printf("Longitude = %f\n", data_r->longitude);
 		}
@@ -289,12 +290,12 @@ void get_GPS(gps_name addr, GPS_DATA *data_r)
 			{
 			/*GPS Data is not valid. Set valid bit, latitude and longitude to 0*/
 			data_r->valid_bit = 0;
-			data_r->latitude = 0;
-			data_r->longitude = 0;
-			printf("Valid bit = %d\n", data_r->valid_bit);
-//			printf("Counter =   %d\n", data_r->counter);
-//			printf("Latitude =  %lu\n", data_r->latitude);
-//			printf("Longitude = %lu\n", data_r->longitude);
+//			data_r->latitude = 0;
+//			data_r->longitude = 0;
+//			printf("Valid bit = %d\n", data_r->valid_bit);
+////			printf("Counter =   %d\n", data_r->counter);
+//			printf("Latitude =  %f\n", data_r->latitude);
+//			printf("Longitude = %f\n", data_r->longitude);
 			}
 	}
 }

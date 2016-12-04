@@ -39,13 +39,16 @@
 #include "_can_dbc/generated_can.h"
 #include "can.h"
 #include "compass.hpp"
+#include "tlm/c_tlm_var.h"
 
 /*
  * Switches between test-code and run-code. 1 for test code. 0 for run code.
  */
-#define TEST_GPS 1
-#define test_dest_latitude 37.336829
-#define test_dest_longitude -121.882407
+#define TEST_GPS 0
+#define test_dest_latitude 37.335716
+#define test_dest_longitude -121.881596
+
+int counter = 0;
 
 COMPASS_Data_t COMPASS_Value = {0};
 GPS_Data_t gps_rx_data = {0};
@@ -76,6 +79,8 @@ bool period_init(void)
 /// Register any telemetry variables
 bool period_reg_tlm(void)
 {
+	tlm_component *bucket = tlm_component_get_by_name("disk");
+	TLM_REG_VAR(bucket, counter, tlm_int);
     // Make sure "SYS_CFG_ENABLE_TLM" is enabled at sys_config.h to use Telemetry
     return true; // Must return true upon success
 }
@@ -89,6 +94,7 @@ bool period_reg_tlm(void)
 void period_1Hz(uint32_t count)
 {
 	check_reset_canbus();
+	counter++;
 }
 
 void period_10Hz(uint32_t count)
@@ -114,10 +120,6 @@ void period_10Hz(uint32_t count)
 	gps_rx_data.GPS_READOUT_latitude = data_received.latitude;
 	gps_rx_data.GPS_READOUT_longitude = data_received.longitude;
 
-	/*---Sending to Canbus Periodically for all to read---*/
-	dbc_encode_and_send_GPS_Data(&gps_rx_data);
-	dbc_encode_and_send_COMPASS_Data(&COMPASS_Value);
-
 
 #if TEST_GPS
 /* ---------- This area is for manual testing of angle and distance using a fixed coordinate from Google Map and readings from GPS module --------*/
@@ -128,13 +130,17 @@ void period_10Hz(uint32_t count)
 	printf("\nAngle of approach is: %f\n", angle);
 	double distance = distanceToTargetLocation(&data_received,test_dest_latitude,test_dest_longitude);
 
-	printf("Distance away from destination: %f meter(s) \n\n", distance);
+	//printf("Distance away from destination: %f meter(s) \n\n", distance);
 
 	/*---Assigns calculated angle and distance values to GEO dbc header---*/
 	geo_data.GPS_ANGLE_degree = angle;
 	geo_data.GPS_DISTANCE_meter = distance;
 	/*---Sends angle and distance data onto CAN bus---*/
 	dbc_encode_and_send_GEO_Header(&geo_data);
+	/*---Sends GPS Data: Long, Lat, Counter, Valid bit---*/
+	dbc_encode_and_send_GPS_Data(&gps_rx_data);
+	/*--Sends Compass Header from Compass---*/
+	dbc_encode_and_send_COMPASS_Data(&COMPASS_Value);
 
 #else
 /*	Polls for master's HB message. Once received, sends Compass and GPS data out */
@@ -151,16 +157,22 @@ void period_10Hz(uint32_t count)
 
 		if(dbc_decode_MASTER_HB(&master_hb, can_msg.data.bytes, &can_msg_hdr))
 		{
+			printf("From Master Lat = %f\n", master_hb.MASTER_LAT_cmd);
+			printf("From Master Long = %f\n", master_hb.MASTER_LONG_cmd);
 			double error_angle = angleOfError(&data_received,master_hb.MASTER_LAT_cmd,master_hb.MASTER_LONG_cmd,compass.Com_head);
-			printf("\nAngle of approach is: %f\n", error_angle);
+			//printf("\nAngle of approach is: %f\n", error_angle);
 			double distance_to_checkpoint = distanceToTargetLocation(&data_received,master_hb.MASTER_LAT_cmd,master_hb.MASTER_LONG_cmd);
-			printf("Distance away from destination: %f meter(s) \n\n", distance_to_checkpoint);
+			//printf("Distance away from destination: %f meter(s) \n\n", distance_to_checkpoint);
 
 			/*---Assigns calculated angle and distance values to GEO dbc header---*/
 			geo_data.GPS_ANGLE_degree = error_angle;
 			geo_data.GPS_DISTANCE_meter = distance_to_checkpoint;
 			/*---Sends angle and distance data onto CAN bus---*/
 			dbc_encode_and_send_GEO_Header(&geo_data);
+			/*---Sends GPS Data: Long, Lat, Counter, Valid bit---*/
+			dbc_encode_and_send_GPS_Data(&gps_rx_data);
+			/*--Sends Compass Header from Compass---*/
+			dbc_encode_and_send_COMPASS_Data(&COMPASS_Value);
 		}
 	}
 
