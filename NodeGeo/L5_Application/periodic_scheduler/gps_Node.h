@@ -7,7 +7,6 @@
 #ifndef L5_APPLICATION_PERIODIC_SCHEDULER_GPS_NODE_H_
 #define L5_APPLICATION_PERIODIC_SCHEDULER_GPS_NODE_H_
 
-
 /*
  * Defines all GPS Address types.
  * Converts these types into string so that strcpy() function can take them in as a parameter
@@ -18,6 +17,7 @@ enum gps_name { GPS CODE };
 #undef C
 #define C(x) #x,
 const char * const gps_addr[] = { GPS };
+
 
 /* Defines each 0.000001 decimal degree equals to the meter value meterPerDecimalDegree produces at provided latitude.
  * @meterPerDecimalDegree This equation is calculated from "Degree precision versus length" table from wikipedia.org
@@ -36,8 +36,8 @@ const char * const gps_addr[] = { GPS };
 typedef struct{
 	int valid_bit;
 	uint16_t counter;
-	float latitude;
-	float longitude;
+	double latitude;
+	double longitude;
 }GPS_DATA;
 
 void serialInit(void);
