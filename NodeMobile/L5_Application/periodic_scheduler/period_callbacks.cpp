@@ -61,12 +61,16 @@ bool last_co=0;
 bool match_flag=0;
 int MIA_Unit=0;
 int my_left=99,my_right=99,center=99,rear=99;
-float latitude=0,longitude=0,speed=0,temporary_latitude_value=0,temporary_longitude_value=0;
+float speed=0,temporary_latitude_value=0,temporary_longitude_value=0;
+int latitude=0, longitude=0;
+double latitude1=0,longitude1=0;
 volatile int n=0;
 int lat1,lat2,lat3,lat4,lat5,lat6,lon1,lon2,lon3,lon4,lon5,lon6;
 char a[1];
-int s_latitude[100];
-int s_longitude[100];
+double s_latitude[100];
+double s_longitude[100];
+//int s_latitude[100];
+//int s_longitude[100];
 //float* s_latitude = new float[100];
 //float* s_longitude = new float[100];
 int count_semaphore=0;
@@ -139,9 +143,58 @@ bool period_reg_tlm(void) {
  */
 
 void period_1Hz(uint32_t count) {
+	if(n==0 && !last_flag){
+		while (CAN_rx(can1, &can_msg, 0)) {
+				dbc_msg_hdr_t can_msg_hdr;
+				can_msg_hdr.dlc = can_msg.frame_fields.data_len;
+				can_msg_hdr.mid = can_msg.msg_id;
+				APP_START_STOP_t start_cmd = { 0 };
+				if(can_msg_hdr.mid == 0x20)
+					{
+					if (stop == 1) {
+
+							start_cmd.APP_START_STOP_cmd = 0;
+							start_cmd.APP_COORDINATE_READY=0;
+							start_cmd.APP_FINAL_COORDINATE=0;
+							counter=0;
+
+
+						dbc_decode_MASTER_HB(&heartbeat, can_msg.data.bytes, &can_msg_hdr);
+							//n is the number of the co-ordinates from the APP & last_flag is true if last is received from the app
+						dbc_encode_and_send_APP_START_STOP(&start_cmd);
+						}
+					}
+
+				if(can_msg_hdr.mid==0x41){
+							if(MIA_Unit==4){
+								LD.clear();
+							}
+							dbc_decode_GPS_Data(&gpsdata,can_msg.data.bytes,&can_msg_hdr);
+							latitude1=gpsdata.GPS_READOUT_latitude;
+							latitude=latitude1*1000000;
+							longitude1=gpsdata.GPS_READOUT_longitude;
+							longitude=longitude1*1000000;
+						}
+
+				if(can_msg_hdr.mid == 0x10){
+							dbc_decode_SENSOR_DATA(&sensordata, can_msg.data.bytes,&can_msg_hdr);
+							my_left=sensordata.SENSOR_left_sensor;
+							center=sensordata.SENSOR_middle_sensor;
+							my_right=sensordata.SENSOR_right_sensor;
+							if(my_left>99){my_left=99;}
+							if(center>99){center=99;}
+							if(my_right>99){my_right=99;}
+						}
+
+				}
+			char* data=new char[20];
+			sprintf(data,"L%02dR%02dC%02dB%02dSPD%0.3f",my_left,my_right,center,rear,speed);
+			u2.put(data, 0);
+			sprintf(data,"@%d$%d",latitude,longitude);
+			u2.put(data,0);
+			delete[] data;
+}
 	//LE.toggle(1);
-
-
 }
 
 void period_10Hz(uint32_t count) {
@@ -156,18 +209,28 @@ void period_10Hz(uint32_t count) {
 		{
 			printf("The value of n is:%d \n",n);
 			printf("The value of counter is %d \n",lat_counter);
-			printf("%d) Co-ordinates=%d,%d \n",print_counter,s_latitude[print_counter],s_longitude[print_counter]);
+			printf("%d) Co-ordinates=%lf,%lf \n",print_counter,s_latitude[print_counter],s_longitude[print_counter]);
 		}
 		print_counter++;
 	}*/
 
+		/*if(n!=0 && last_flag)
+			{
+				//printf("The value of counter variable=%d",counter);
+				if(counter<lat_counter)
+				{
+					//printf("The value of n is:%d \n",n);
+					printf("The value of counter is %d \n",lat_counter);
+					printf("%d) Co-ordinates=%lf,%lf \n",counter,s_latitude[counter],s_longitude[counter]);
+				}
+				counter++;
+			}*/
+
 	char* data=new char[20];
 	sprintf(data,"L%02dR%02dC%02dB%02dSPD%0.3f",my_left,my_right,center,rear,speed);
 	u2.put(data, 0);
-	sprintf(data,"LAT=%16.6f",latitude);
-	//u2.put(data,0);
-	sprintf(data,"LON=%16.6f",longitude);
-	//u2.put(data,0);
+	sprintf(data,"@%d$%d",latitude,longitude);
+	u2.put(data,0);
 	delete[] data;
 	APP_START_STOP_t start_cmd = { 0 };
 	if (start == 1) {
@@ -175,8 +238,11 @@ void period_10Hz(uint32_t count) {
 
 	} else if (stop == 1) {
 		start_cmd.APP_START_STOP_cmd = 0;
+		start_cmd.APP_COORDINATE_READY=0;
+		counter=0;
 
 	}
+	//printf("The value of counter is %d \n",lat_counter);
 
 	while (CAN_rx(can1, &can_msg, 0)) {
 		dbc_msg_hdr_t can_msg_hdr;
@@ -188,8 +254,10 @@ void period_10Hz(uint32_t count) {
 		{
 			dbc_decode_MASTER_HB(&heartbeat, can_msg.data.bytes, &can_msg_hdr);
 			//n is the number of the co-ordinates from the APP & last_flag is true if last is received from the app
+			//printf("n=%d,last_flag=%d",n,last_flag);
 			if(n!=0 && last_flag)
 			{
+				//printf("entered");
 				start_cmd.APP_COORDINATE_READY=1;
 			}
 			else
@@ -204,18 +272,34 @@ void period_10Hz(uint32_t count) {
 				{
 					start_cmd.APP_ROUTE_latitude=s_latitude[counter];
 					start_cmd.APP_ROUTE_longitude=s_longitude[counter];
+					printf("%d) Co-ordinates=%lf,%lf \n",counter,s_latitude[counter],s_longitude[counter]);
 					if(counter==(lat_counter-1))
-						start_cmd.APP_FINAL_COORDINATE=1;
+					{	start_cmd.APP_FINAL_COORDINATE=1;
+						//start_cmd.APP_COORDINATE_READY=0;
+						last_flag=false;
+						//counter=-1;
+					}
 					else
+					{
 						start_cmd.APP_FINAL_COORDINATE=0;
+					}
 					counter++;
 				}
-				else
+			}
+				if(counter>=lat_counter)
 				{
+					//printf("I entered");
+					//start_cmd.APP_FINAL_COORDINATE=0;
+					start_cmd.APP_COORDINATE_READY=0;
+				}
+				/*else
+				{
+					//printf("I entered");
 					start_cmd.APP_FINAL_COORDINATE=0;
 					start_cmd.APP_COORDINATE_READY=0;
 				}
-			}
+				printf("counter=%d",counter);*/
+
 			dbc_encode_and_send_APP_START_STOP(&start_cmd);
 		}
 		if(can_msg_hdr.mid == 0x10){
@@ -229,7 +313,7 @@ void period_10Hz(uint32_t count) {
 		}
 		if(can_msg_hdr.mid==0x30){
 			dbc_decode_MOTOR_STATUS(&motorstatus,can_msg.data.bytes,&can_msg_hdr);
-			printf("\nMotor speed=%d\n",motorstatus.MOTOR_STATUS_speed_mph);
+			printf("\nMotor speed=%lf\n",motorstatus.MOTOR_STATUS_speed_mph);
 			speed=((float)motorstatus.MOTOR_STATUS_speed_mph)/100;
 		}
 		if(can_msg_hdr.mid==0x41){
@@ -237,8 +321,10 @@ void period_10Hz(uint32_t count) {
 				LD.clear();
 			}
 			dbc_decode_GPS_Data(&gpsdata,can_msg.data.bytes,&can_msg_hdr);
-			latitude=gpsdata.GPS_READOUT_latitude;
-			longitude=gpsdata.GPS_READOUT_longitude;
+			latitude1=gpsdata.GPS_READOUT_latitude;
+			latitude=latitude1*1000000;
+			longitude1=gpsdata.GPS_READOUT_longitude;
+			longitude=longitude1*1000000;
 		}
 	}
 	if (dbc_handle_mia_MASTER_HB(&heartbeat, 100)) {
@@ -267,7 +353,6 @@ void period_10Hz(uint32_t count) {
 
 void period_100Hz(uint32_t count) {
 
-
 	char *stat=new char[14];
 			u2.gets(stat,14,0);
 
@@ -288,6 +373,8 @@ void period_100Hz(uint32_t count) {
 					start=0;
 					size_flag=0;
 					last_flag=0;
+					n=0;
+
 					LE.off(4);
 					LE.off(2);
 					LE.off(3);
@@ -329,8 +416,8 @@ void period_100Hz(uint32_t count) {
 					lon6=stat[13]-'0';
 
 
-					temporary_latitude_value=(37+(lat1*0.1)+(lat2*0.01)+(lat3*0.001)+(lat4*0.0001)+(lat5*0.00001)+(lat6*0.000001))*1000000;
-					temporary_longitude_value=(121+(lon1*0.1)+(lon2*0.01)+(lon3*0.001)+(lon4*0.0001)+(lon5*0.00001)+(lon6*0.000001))*1000000;
+					temporary_latitude_value=(37+(lat1*0.1)+(lat2*0.01)+(lat3*0.001)+(lat4*0.0001)+(lat5*0.00001)+(lat6*0.000001));
+					temporary_longitude_value=(121+(lon1*0.1)+(lon2*0.01)+(lon3*0.001)+(lon4*0.0001)+(lon5*0.00001)+(lon6*0.000001));
 					int repeat_counter;
 					for(repeat_counter=0;repeat_counter<lat_counter;repeat_counter++)
 					{
