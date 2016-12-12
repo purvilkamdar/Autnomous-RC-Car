@@ -9,8 +9,8 @@ from collections import OrderedDict
 This parses the Vector DBC file to generate code to marshal and unmarshal DBC defined messages
 
 Use Python (I used Python 3.5)
-python dbc_parse.py -i 243.dbc -s GPS
-Generate all code: dbc_parse.py -i 243.dbc -s Driver -a all > generated.h
+python dbc_parse.py -i 243.dbc -s MOTOR
+Generate all code: dbc_parse.py -i 243.dbc -s MOTOR -a all > generated.h
 """
 
 LINE_BEG = '%'
@@ -74,29 +74,29 @@ class Signal(object):
 
     # Returns the variable type (float, int, or enum) based ont he signal data range
     def get_code_var_type(self):
-       if self.scale_str.count(".00000")>=1:
-           return "double"
-       elif '.' in self.scale_str:
-           return "float"
-       else:
-           if not is_empty(self.enum_info):
-               return self.name + "_E"
+        if self.scale_str.count(".000001")>=1:
+            return "double"
+        elif '.' in self.scale_str:
+            return "float"
+        else:
+            if not is_empty(self.enum_info):
+                return self.name + "_E"
 
-           _max = (2 ** self.bit_size) * self.scale
-           if self.is_real_signed():
-               _max *= 2
+            _max = (2 ** self.bit_size) * self.scale
+            if self.is_real_signed():
+                _max *= 2
 
-           t = "uint32_t"
-           if _max <= 256:
-               t = "uint8_t"
-           elif _max <= 65536:
-               t = "uint16_t"
+            t = "uint32_t"
+            if _max <= 256:
+                t = "uint8_t"
+            elif _max <= 65536:
+                t = "uint16_t"
 
-           # If the signal is signed, or the offset is negative, remove "u" to use "int" type.
-           if self.is_real_signed() or self.offset < 0:
-               t = t[1:]
+            # If the signal is signed, or the offset is negative, remove "u" to use "int" type.
+            if self.is_real_signed() or self.offset < 0:
+                t = t[1:]
 
-           return t
+            return t
 
     # Get the signal declaration with the variable type and bit size
     def get_signal_code(self):
@@ -591,7 +591,7 @@ class DBC(object):
         code += ("    else if(!old_mia.is_mia)   { // Previously not MIA, but it is MIA now\n")
         code += ("        // Copy MIA struct, then re-write the MIA counter and is_mia that is overwriten\n")
         code += ("        *msg = " + msg_name + "__MIA_MSG;\n")
-        code += ("        msg->mia_info.mia_counter_ms = 0;\n")
+        code += ("        msg->mia_info.mia_counter_ms = " + msg_name + "__MIA_MS;\n")
         code += ("        msg->mia_info.is_mia = true;\n")
         code += ("        mia_occurred = true;\n")
         code += ("    }\n")
@@ -685,26 +685,26 @@ def main(argv):
 
             if (int(msg_id) < 0) or (int(msg_id) > 2047):
                 print('/////////////////////////////// ERROR /////////////////////////////////////')
-                print('#error msg id '+ msg_id + ' is out of bounds')
+                print('#error msg id '+ tokens[1] + ' is out of bounds')
                 print('/////////////////////////////// ERROR /////////////////////////////////////')
                 print('')
-                raise ValueError('#error msg id '+ msg_id + ' is out of bounds')
+                raise ValueError('#error msg id '+ tokens[1] + ' is out of bounds for 11-bit msgID')
 
             if msg_id not in msg_ids_used:
                 msg_id = msg_ids_used.append(msg_id)
             else:
                 print('/////////////////////////////// ERROR /////////////////////////////////////')
-                print('#error '+ msg_id + ' has already been used')
+                print('#error '+ tokens[1] + ' has already been used')
                 print('/////////////////////////////// ERROR /////////////////////////////////////')
                 print('')
                 raise ValueError('#error msg id '+ msg_id + ' has already been used')
 
-            if int(msg_length) > 8 or int(msg_length) < 1:
+            if (int(msg_length) > 8) or (int(msg_length) < 0):
                 print('/////////////////////////////// ERROR /////////////////////////////////////')
-                print('#error '+ msg_id + ' has an incorrect number of bytes. It must be between 1 and 8 bytes.')
+                print('#error ' + str(tokens[1]) + ' has an incorrect number of bytes. It must be between 0 and 8 bytes.')
                 print('/////////////////////////////// ERROR /////////////////////////////////////')
                 print('')
-                raise ValueError('#error msg id '+ msg_id + ' has an incorrect number of bytes. It must be between 1 and 8 bytes.')
+                raise ValueError('#error msg id ' + str(tokens[1]) + ' has an incorrect number of bytes. It must be between 0 and 8 bytes.')
 
         # Signals: SG_ IO_DEBUG_test_signed : 16|8@1+ (1,-128) [0|0] "" DBG
         if line.startswith(" SG_ "):

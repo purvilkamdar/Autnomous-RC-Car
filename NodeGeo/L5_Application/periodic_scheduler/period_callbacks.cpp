@@ -35,25 +35,43 @@
 #include "periodic_callback.h"
 #include "file_logger.h"
 #include "uart3.hpp"
-#include "gps_Node.h"
 #include "_can_dbc/generated_can.h"
 #include "can.h"
+#include "tlm/c_tlm_var.h"
+
+#define OOPCODE 0	//Change to 1 to use OOP code. 0 to use original procedural code without filter but must comment out canbus parameters line 20-26 in GPS_Manager.cpp
+
+#if OOPCODE
+#include "Geo_Manager.h"
+#include "Geo_CalculationEngine.h"
+#include "GPS_Module.h"
+#include "Compass_Module.h"
+#include "geo_data.h"
+
+GeoManager *my_Geo_Manager = new GeoManager();
+
+#else
+
+#include "gps_Node.h"
 #include "compass.hpp"
 
 /*
  * Switches between test-code and run-code. 1 for test code. 0 for run code.
  */
-#define TEST_GPS 1
-#define test_dest_latitude 37.336829
-#define test_dest_longitude -121.882407
+#define TEST_GPS 0	//Set this to 1 to run GPS Test code using the defined coordinates below. Set to 0 for run-mode which uses GPS coordinates from master node.
+#define test_dest_latitude 37.335716
+#define test_dest_longitude -121.881596
 
-COMPASS_Data_t COMPASS_Value = {0};
-GPS_Data_t gps_rx_data = {0};
-GEO_Header_t geo_data = {0};
-MASTER_HB_t master_hb = {0};
+COMPASS_Data_t COMPASS_Value_ = {0};
+GPS_Data_t gps_rx_data_ = {0};
+GEO_Header_t geo_data_ = {0};
+MASTER_HB_t master_hb_ = {0};
 
-const uint32_t         MASTER_HB__MIA_MS = 1000;
-const MASTER_HB_t      MASTER_HB__MIA_MSG = {0};
+const uint32_t         MASTER_HB__MIA_MS_ = 1000;
+const MASTER_HB_t      MASTER_HB__MIA_MSG_ = {0};
+
+
+#endif
 
 /// This is the stack size used for each of the period tasks (1Hz, 10Hz, 100Hz, and 1000Hz)
 const uint32_t PERIOD_TASKS_STACK_SIZE_BYTES = (512 * 4);
@@ -69,13 +87,49 @@ const uint32_t PERIOD_DISPATCHER_TASK_STACK_SIZE_BYTES = (512 * 3);
 /// Called once before the RTOS is started, this is a good place to initialize things once
 bool period_init(void)
 {
+#if OOPCODE
+	my_Geo_Manager->serialInit();
+#else
 	serialInit();
+#endif
     return true; // Must return true upon success
 }
 
 /// Register any telemetry variables
 bool period_reg_tlm(void)
 {
+	tlm_component *bucket = tlm_component_get_by_name("debug");
+//	tlm_component *bucket1 = tlm_component_get_by_name("disk");
+//	TLM_REG_VAR(bucket, my_Geo_Manager->calculated_geo_data_.counter, tlm_int);
+//	TLM_REG_VAR(bucket, my_Geo_Manager->calculated_geo_data_.c_latitude, tlm_double);
+//	TLM_REG_VAR(bucket, my_Geo_Manager->calculated_geo_data_.c_longitude, tlm_double);
+//	TLM_REG_VAR(bucket, my_Geo_Manager->calculated_geo_data_.c_distanceToLocation, tlm_float);
+//	TLM_REG_VAR(bucket, my_Geo_Manager->calculated_geo_data_.c_errorAngle, tlm_float);
+//	TLM_REG_VAR(bucket, my_Geo_Manager->calculated_geo_data_.c_lat_mean, tlm_double);
+//	TLM_REG_VAR(bucket, my_Geo_Manager->calculated_geo_data_.c_long_mean, tlm_double);
+
+//	TLM_REG_VAR(bucket, my_Geo_Manager->geo_data_.GPS_message_status, tlm_int);
+//	TLM_REG_VAR(bucket, my_Geo_Manager->geo_data_.GPS_message_counter, tlm_int);
+//	TLM_REG_VAR(bucket, my_Geo_Manager->geo_data_.latitude, tlm_double);
+//	TLM_REG_VAR(bucket, my_Geo_Manager->geo_data_.longitude, tlm_double);
+//	TLM_REG_VAR(bucket, my_Geo_Manager->geo_data_.compass_heading, tlm_int);
+
+  //TLM_REG_VAR(bucket, gps_rx_data_.GPS_READOUT_valid_bit, tlm_int);
+//	TLM_REG_VAR(bucket, gps_rx_data_.GPS_READOUT_read_counter, tlm_int);
+//	TLM_REG_VAR(bucket, gps_rx_data_.GPS_READOUT_latitude, tlm_double);
+//	TLM_REG_VAR(bucket, gps_rx_data_.GPS_READOUT_longitude, tlm_double);
+//	TLM_REG_VAR(bucket, geo_data_.GPS_DISTANCE_meter, tlm_double);
+	TLM_REG_VAR(bucket, COMPASS_Value_.COMPASS_Heading, tlm_int);
+	TLM_REG_VAR(bucket, gps_rx_data_.GPS_READOUT_latitude, tlm_double);
+	TLM_REG_VAR(bucket, gps_rx_data_.GPS_READOUT_longitude, tlm_double);
+	TLM_REG_VAR(bucket, gps_rx_data_.GPS_READOUT_latitude, tlm_double);
+	TLM_REG_VAR(bucket, geo_data_.GPS_ANGLE_degree, tlm_float);
+	TLM_REG_VAR(bucket, master_hb_.MASTER_LAT_cmd, tlm_double);
+	TLM_REG_VAR(bucket, master_hb_.MASTER_LONG_cmd, tlm_double);
+
+//
+//	TLM_REG_VAR(bucket, COMPASS_Value_.COMPASS_Heading, tlm_int);
+
     // Make sure "SYS_CFG_ENABLE_TLM" is enabled at sys_config.h to use Telemetry
     return true; // Must return true upon success
 }
@@ -88,35 +142,35 @@ bool period_reg_tlm(void)
 
 void period_1Hz(uint32_t count)
 {
+
+#if OOPCODE
+	my_Geo_Manager->check_reset_canbus();
+#else
 	check_reset_canbus();
+#endif
 }
 
 void period_10Hz(uint32_t count)
 {
-//	I2C2& i2c = I2C2::getInstance();
-//	uint8_t byte[1] = {0x02};
-//	i2c.writeRegisters(LCD_ADDR,0x02,byte,1);
-
-	COM_DATA compass = {0};
+#if OOPCODE
+	my_Geo_Manager->run_GeoNode();
+#else
+	static COM_DATA compass = {0};
 	static GPS_DATA data_received = {0};
 
 	/*---Gets compass Data---*/
 	get_compass_data(&compass);
 
-	COMPASS_Value.COMPASS_Heading = compass.Com_head;
+	COMPASS_Value_.COMPASS_Heading = compass.Com_head;
 
 	/*---Gets GPS Data---*/
 	get_GPS(GPRMC, &data_received);
 
 	/*---Assigns GPS data to GPS_READOUT header---*/
-	gps_rx_data.GPS_READOUT_valid_bit = data_received.valid_bit;
-	gps_rx_data.GPS_READOUT_read_counter = data_received.counter;
-	gps_rx_data.GPS_READOUT_latitude = data_received.latitude;
-	gps_rx_data.GPS_READOUT_longitude = data_received.longitude;
-
-	/*---Sending to Canbus Periodically for all to read---*/
-	dbc_encode_and_send_GPS_Data(&gps_rx_data);
-	dbc_encode_and_send_COMPASS_Data(&COMPASS_Value);
+	gps_rx_data_.GPS_READOUT_valid_bit = data_received.valid_bit;
+	gps_rx_data_.GPS_READOUT_read_counter = data_received.counter;
+	gps_rx_data_.GPS_READOUT_latitude = data_received.latitude;
+	gps_rx_data_.GPS_READOUT_longitude = data_received.longitude;
 
 
 #if TEST_GPS
@@ -128,13 +182,17 @@ void period_10Hz(uint32_t count)
 	printf("\nAngle of approach is: %f\n", angle);
 	double distance = distanceToTargetLocation(&data_received,test_dest_latitude,test_dest_longitude);
 
-	printf("Distance away from destination: %f meter(s) \n\n", distance);
+	//printf("Distance away from destination: %f meter(s) \n\n", distance);
 
 	/*---Assigns calculated angle and distance values to GEO dbc header---*/
-	geo_data.GPS_ANGLE_degree = angle;
-	geo_data.GPS_DISTANCE_meter = distance;
+	geo_data_.GPS_ANGLE_degree = angle;
+	geo_data_.GPS_DISTANCE_meter = distance;
 	/*---Sends angle and distance data onto CAN bus---*/
-	dbc_encode_and_send_GEO_Header(&geo_data);
+	dbc_encode_and_send_GEO_Header(&geo_data_);
+	/*---Sends GPS Data: Long, Lat, Counter, Valid bit---*/
+	dbc_encode_and_send_GPS_Data(&gps_rx_data_);
+	/*--Sends Compass Header from Compass---*/
+	dbc_encode_and_send_COMPASS_Data(&COMPASS_Value_);
 
 #else
 /*	Polls for master's HB message. Once received, sends Compass and GPS data out */
@@ -149,49 +207,38 @@ void period_10Hz(uint32_t count)
 		can_msg_hdr.dlc = can_msg.frame_fields.data_len;
 		can_msg_hdr.mid = can_msg.msg_id;
 
-		if(dbc_decode_MASTER_HB(&master_hb, can_msg.data.bytes, &can_msg_hdr))
+		if(dbc_decode_MASTER_HB(&master_hb_, can_msg.data.bytes, &can_msg_hdr))
 		{
-			double error_angle = angleOfError(&data_received,master_hb.MASTER_LAT_cmd,master_hb.MASTER_LONG_cmd,compass.Com_head);
-			printf("\nAngle of approach is: %f\n", error_angle);
-			double distance_to_checkpoint = distanceToTargetLocation(&data_received,master_hb.MASTER_LAT_cmd,master_hb.MASTER_LONG_cmd);
+			//printf("From Master Lat = %f\n", master_hb_.MASTER_LAT_cmd);
+			//printf("From Master Long = %f\n", master_hb_.MASTER_LONG_cmd);
+			double error_angle = angleOfError(&data_received,master_hb_.MASTER_LAT_cmd,master_hb_.MASTER_LONG_cmd,compass.Com_head);
+			//printf("\nAngle of approach is: %f\n", error_angle);
+			double distance_to_checkpoint = distanceToTargetLocation(&data_received,master_hb_.MASTER_LAT_cmd,master_hb_.MASTER_LONG_cmd);
 			printf("Distance away from destination: %f meter(s) \n\n", distance_to_checkpoint);
 
 			/*---Assigns calculated angle and distance values to GEO dbc header---*/
-			geo_data.GPS_ANGLE_degree = error_angle;
-			geo_data.GPS_DISTANCE_meter = distance_to_checkpoint;
+			geo_data_.GPS_ANGLE_degree = error_angle;
+			geo_data_.GPS_DISTANCE_meter = distance_to_checkpoint;
 			/*---Sends angle and distance data onto CAN bus---*/
-			dbc_encode_and_send_GEO_Header(&geo_data);
+			dbc_encode_and_send_GEO_Header(&geo_data_);
+			/*---Sends GPS Data: Long, Lat, Counter, Valid bit---*/
+			dbc_encode_and_send_GPS_Data(&gps_rx_data_);
+			/*--Sends Compass Header from Compass---*/
+			dbc_encode_and_send_COMPASS_Data(&COMPASS_Value_);
 		}
 	}
 
 	/*----MIA handler for MASTER HB signal. Toggles 1 & 4 LEDs on board when in MIA state---*/
-	if(dbc_handle_mia_MASTER_HB(&master_hb,100))
+	if(dbc_handle_mia_MASTER_HB(&master_hb_,100))
 	{
 		//printf("In MIA State.\n");
-		LE.toggle(1);
-		LE.toggle(4);
+		LE.toggle(2);
+		LE.toggle(3);
 	}
 
-#endif
+#endif	//TEST_GPS IF
 
-
-/*
-	//Quick Canbus Test using on board Switches & LEDs
-	can_msg_t can_msg2;
-
-	if(SW.getSwitch(1))
-	{
-		LE.toggle(1);
-		sendCan1_Any_Message(0x111, 0, 1, 1);
-	}
-
-	can_msg_t can_receiver_test;
-
-	if(CAN_rx(can2,&can_receiver_test,0))
-	{
-		LE.toggle(4);
-	}
-*/
+#endif	//OOPCODE IF
 }
 
 void period_100Hz(uint32_t count)

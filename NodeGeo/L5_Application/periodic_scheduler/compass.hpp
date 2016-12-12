@@ -10,7 +10,7 @@ void get_compass_data(COM_DATA *compassData);
 void can_task(void);
 
 
-bool dbc_app_send_can_msg(uint32_t mid, uint8_t dlc, uint8_t bytes[8]);
+//bool dbc_app_send_can_msg(uint32_t mid, uint8_t dlc, uint8_t bytes[8]);
 
 
 
