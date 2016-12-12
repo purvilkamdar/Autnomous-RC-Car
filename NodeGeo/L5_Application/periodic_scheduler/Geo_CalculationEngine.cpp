@@ -31,7 +31,7 @@ void Geo_CalculationEngine::deviation_filter_controller(geo_data geo_data_, calc
 
 	if(geo_data_.GPS_message_status == valid)
 	{
-		if(calculated_geo_data_.counter >= arr_size)
+		if(calculated_geo_data_.counter >= arr_size && geo_data_.latitude >=37.0 && geo_data_.longitude <= -121.0)
 		{
 		    //printf("Counter is greater than arr_size of %i\n", arr_size);
 
@@ -227,7 +227,7 @@ double Geo_CalculationEngine::distanceToTargetLocation(geo_data geo_data_, maste
 		current_A.x = geo_data_.latitude;
 		current_A.y = geo_data_.longitude;
 		destination_B.x = master_data_.m_latitude;
-		destination_B.y = master_data_.m_longitude;
+		destination_B.y = master_data_.m_longitude * (-1);
 
 		vector_R.x = current_A.x - destination_B.x;
 		vector_R.y = current_A.y - destination_B.y;
@@ -269,7 +269,7 @@ bool Geo_CalculationEngine::distanceToTargetLocation_wCalculatedGeoData(calculat
 	current_A.x = calculated_geo_data_.c_latitude;
 	current_A.y = calculated_geo_data_.c_longitude;
 	destination_B.x = master_data_.m_latitude;
-	destination_B.y = master_data_.m_longitude;
+	destination_B.y = master_data_.m_longitude * (-1);
 
 	vector_R.x = current_A.x - destination_B.x;
 	vector_R.y = current_A.y - destination_B.y;

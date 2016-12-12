@@ -39,7 +39,7 @@
 #include "can.h"
 #include "tlm/c_tlm_var.h"
 
-#define OOPCODE 1	//Change to 1 to use OOP code. 0 to use original procedural code without filter but must comment out canbus parameters line 20-26 in GPS_Manager.cpp
+#define OOPCODE 0	//Change to 1 to use OOP code. 0 to use original procedural code without filter but must comment out canbus parameters line 20-26 in GPS_Manager.cpp
 
 #if OOPCODE
 #include "Geo_Manager.h"
@@ -49,8 +49,6 @@
 #include "geo_data.h"
 
 GeoManager *my_Geo_Manager = new GeoManager();
-
-double counter = 0;
 
 #else
 
@@ -102,20 +100,36 @@ bool period_reg_tlm(void)
 {
 	tlm_component *bucket = tlm_component_get_by_name("debug");
 //	tlm_component *bucket1 = tlm_component_get_by_name("disk");
-	TLM_REG_VAR(bucket, my_Geo_Manager->calculated_geo_data_.counter, tlm_int);
-	TLM_REG_VAR(bucket, my_Geo_Manager->calculated_geo_data_.c_latitude, tlm_double);
-	TLM_REG_VAR(bucket, my_Geo_Manager->calculated_geo_data_.c_longitude, tlm_double);
-	TLM_REG_VAR(bucket, my_Geo_Manager->calculated_geo_data_.c_distanceToLocation, tlm_float);
-	TLM_REG_VAR(bucket, my_Geo_Manager->calculated_geo_data_.c_errorAngle, tlm_float);
-	TLM_REG_VAR(bucket, my_Geo_Manager->calculated_geo_data_.c_lat_mean, tlm_double);
-	TLM_REG_VAR(bucket, my_Geo_Manager->calculated_geo_data_.c_long_mean, tlm_double);
+//	TLM_REG_VAR(bucket, my_Geo_Manager->calculated_geo_data_.counter, tlm_int);
+//	TLM_REG_VAR(bucket, my_Geo_Manager->calculated_geo_data_.c_latitude, tlm_double);
+//	TLM_REG_VAR(bucket, my_Geo_Manager->calculated_geo_data_.c_longitude, tlm_double);
+//	TLM_REG_VAR(bucket, my_Geo_Manager->calculated_geo_data_.c_distanceToLocation, tlm_float);
+//	TLM_REG_VAR(bucket, my_Geo_Manager->calculated_geo_data_.c_errorAngle, tlm_float);
+//	TLM_REG_VAR(bucket, my_Geo_Manager->calculated_geo_data_.c_lat_mean, tlm_double);
+//	TLM_REG_VAR(bucket, my_Geo_Manager->calculated_geo_data_.c_long_mean, tlm_double);
 
-	TLM_REG_VAR(bucket, my_Geo_Manager->geo_data_.GPS_message_status, tlm_int);
-	TLM_REG_VAR(bucket, my_Geo_Manager->geo_data_.GPS_message_counter, tlm_int);
-	TLM_REG_VAR(bucket, my_Geo_Manager->geo_data_.latitude, tlm_double);
-	TLM_REG_VAR(bucket, my_Geo_Manager->geo_data_.longitude, tlm_int);
-	TLM_REG_VAR(bucket, my_Geo_Manager->geo_data_.compass_heading, tlm_double);
-	//TLM_REG_VAR(bucket, counter, tlm_int);
+//	TLM_REG_VAR(bucket, my_Geo_Manager->geo_data_.GPS_message_status, tlm_int);
+//	TLM_REG_VAR(bucket, my_Geo_Manager->geo_data_.GPS_message_counter, tlm_int);
+//	TLM_REG_VAR(bucket, my_Geo_Manager->geo_data_.latitude, tlm_double);
+//	TLM_REG_VAR(bucket, my_Geo_Manager->geo_data_.longitude, tlm_double);
+//	TLM_REG_VAR(bucket, my_Geo_Manager->geo_data_.compass_heading, tlm_int);
+
+  //TLM_REG_VAR(bucket, gps_rx_data_.GPS_READOUT_valid_bit, tlm_int);
+//	TLM_REG_VAR(bucket, gps_rx_data_.GPS_READOUT_read_counter, tlm_int);
+//	TLM_REG_VAR(bucket, gps_rx_data_.GPS_READOUT_latitude, tlm_double);
+//	TLM_REG_VAR(bucket, gps_rx_data_.GPS_READOUT_longitude, tlm_double);
+//	TLM_REG_VAR(bucket, geo_data_.GPS_DISTANCE_meter, tlm_double);
+	TLM_REG_VAR(bucket, COMPASS_Value_.COMPASS_Heading, tlm_int);
+	TLM_REG_VAR(bucket, gps_rx_data_.GPS_READOUT_latitude, tlm_double);
+	TLM_REG_VAR(bucket, gps_rx_data_.GPS_READOUT_longitude, tlm_double);
+	TLM_REG_VAR(bucket, gps_rx_data_.GPS_READOUT_latitude, tlm_double);
+	TLM_REG_VAR(bucket, geo_data_.GPS_ANGLE_degree, tlm_float);
+	TLM_REG_VAR(bucket, master_hb_.MASTER_LAT_cmd, tlm_double);
+	TLM_REG_VAR(bucket, master_hb_.MASTER_LONG_cmd, tlm_double);
+
+//
+//	TLM_REG_VAR(bucket, COMPASS_Value_.COMPASS_Heading, tlm_int);
+
     // Make sure "SYS_CFG_ENABLE_TLM" is enabled at sys_config.h to use Telemetry
     return true; // Must return true upon success
 }
@@ -195,12 +209,12 @@ void period_10Hz(uint32_t count)
 
 		if(dbc_decode_MASTER_HB(&master_hb_, can_msg.data.bytes, &can_msg_hdr))
 		{
-			printf("From Master Lat = %f\n", master_hb_.MASTER_LAT_cmd);
-			printf("From Master Long = %f\n", master_hb_.MASTER_LONG_cmd);
+			//printf("From Master Lat = %f\n", master_hb_.MASTER_LAT_cmd);
+			//printf("From Master Long = %f\n", master_hb_.MASTER_LONG_cmd);
 			double error_angle = angleOfError(&data_received,master_hb_.MASTER_LAT_cmd,master_hb_.MASTER_LONG_cmd,compass.Com_head);
 			//printf("\nAngle of approach is: %f\n", error_angle);
 			double distance_to_checkpoint = distanceToTargetLocation(&data_received,master_hb_.MASTER_LAT_cmd,master_hb_.MASTER_LONG_cmd);
-			//printf("Distance away from destination: %f meter(s) \n\n", distance_to_checkpoint);
+			printf("Distance away from destination: %f meter(s) \n\n", distance_to_checkpoint);
 
 			/*---Assigns calculated angle and distance values to GEO dbc header---*/
 			geo_data_.GPS_ANGLE_degree = error_angle;

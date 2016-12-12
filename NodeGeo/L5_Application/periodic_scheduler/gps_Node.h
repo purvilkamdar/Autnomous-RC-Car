@@ -28,8 +28,8 @@ const char * const gps_addr[] = { GPS };
 #define meterPerDecimalDegree(latitude) ((0.00005*pow(latitude,3) - 0.01912*pow(latitude,2) + 0.02642*latitude + 111.32)*0.001)
 
 /* Performs an offset to the coordinates received from GPS module to match closer to what google map gives */
-#define LATTIDUE_OFFSET 0.000011;
-#define LONGITUDE_OFFSET 0.000000;
+#define LATTIDUE_OFFSET -0.000000
+#define LONGITUDE_OFFSET -0.000000
 
 #define LCD_ADDR 0x3F
 

@@ -77,7 +77,7 @@ double angleOfError(GPS_DATA *gps_data, double destination_lat, double destinati
 	/*---Reassigning input to better visual them as coordinates---*/
 	current_A.x = gps_data->longitude;
 	current_A.y = gps_data->latitude;
-	destination_C.x = destination_long;
+	destination_C.x = destination_long * (-1);
 	destination_C.y = destination_lat;
 	projection_B.x = gps_data->longitude;
 	projection_B.y = gps_data->latitude + 0.1;
@@ -109,7 +109,7 @@ double angleOfError(GPS_DATA *gps_data, double destination_lat, double destinati
 	/*---Checks if destination_longitude is less than current_longitude and change sign of angle to mark if destination is on East(+) or West(-) side.---*/
 	if(destination_C.x < current_A.x)
 		angle = angle*(-1);
-//	printf("Angle with respect 2to North = %f\n", angle);
+	printf("Angle with respect to North = %f\n", angle);
 	/*---Perform an offset to compass heading once it reads over 180 degree. This is to help next calculation.---*/
 	if(compass_angle > 180)
 		compass_new = (-1)*(360 - compass_angle);
@@ -139,7 +139,7 @@ double angleOfError(GPS_DATA *gps_data, double destination_lat, double destinati
 	return angle_final;
 	}
 	else
-		return 88;
+		return 0;
 }
 
 
@@ -162,7 +162,7 @@ double distanceToTargetLocation(GPS_DATA *gps_data, double destination_lat, doub
 	current_A.x = gps_data->latitude;
 	current_A.y = gps_data->longitude;
 	destination_B.x = destination_lat;
-	destination_B.y = destination_long;
+	destination_B.y = destination_long * (-1);
 
 	vector_R.x = current_A.x - destination_B.x;
 	vector_R.y = current_A.y - destination_B.y;
@@ -185,7 +185,7 @@ double distanceToTargetLocation(GPS_DATA *gps_data, double destination_lat, doub
 		{
 		LD.setLeftDigit('F');
 		LD.setRightDigit('F');
-		return 0;
+		return 5555.5555;
 		}
 }
 
