@@ -55,6 +55,8 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -88,6 +90,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     private BluetoothDevice bleChip;
     private BluetoothLeService btLeService;
     private GoogleMap mMap;
+    private GoogleMap Starting_Marker;
     private TextView connectionState;
     private TextView speedView;
     private TextView gpsView;
@@ -102,24 +105,34 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     private String receivedData;
     boolean Marker_Set=false;
     boolean send_lat_long=false;
+    Double LatCoord=0.000000;
+    Double LonCoord=0.000000;
+    Double prev_LatCoord=0.000000;
+    Double prev_LngCoord=0.000000;
+    private boolean UpdateLatCamLocation=false;
+    private boolean UpdateLngCamLocation=false;
+    //int Starting_position=0;
     LatLng SU=null;
     LatLng Destination=null;
     Marker marker;
+    Marker start_marker;
     Polyline line=null;
     private ArrayList<String> Lati;
     private ArrayList<String> Longi;
     DecimalFormat decimalFormat = new DecimalFormat("#.000000");
     String sending_string = new String();
     public void onMapReady(GoogleMap googleMap) {
+        gpsView.setText("0.000000,0.000000");
         mMap = googleMap;
+        Starting_Marker=googleMap;
         //polyline=new PolylineOptions();
         //line=new Polyline();
         // Add a marker in Student Union and move the camera
         SU = new LatLng(37.336022, -121.881344);
         //polyline.add(SU);
-        mMap.addMarker(new MarkerOptions().position(SU).title("Starting position"));
+        start_marker=mMap.addMarker(new MarkerOptions().position(SU).title("Starting position").icon(BitmapDescriptorFactory.fromResource(R.mipmap.new_titans)));
         CameraUpdate location = CameraUpdateFactory.newLatLngZoom(SU,17);
-        mMap.animateCamera(location);
+        //mMap.animateCamera(location);
 
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener(){
             @Override
@@ -246,9 +259,9 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     public void SendData()
     {
         try {
-            Thread.sleep(10);
+            Thread.sleep(100);
             btLeService.writeLatLong("Size");
-            Thread.sleep(10);
+            Thread.sleep(100);
             btLeService.writeLatLong(Integer.toString(Lati.size()+1));
 
         }
@@ -262,10 +275,10 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             {
                 try {
                     //if(i%2==0)
-                        //Thread.sleep(1000);
+                    //Thread.sleep(1000);
                     //Thread.sleep(10);
                     //btLeService.writeLatLong("Latitude");
-                    Thread.sleep(10);
+                    Thread.sleep(100);
                     //btLeService.writeLatLong("#"+Lati.get(i));
                     sending_string="#"+Lati.get(i)+"%"+Longi.get(i);
                     btLeService.writeLatLong(sending_string);
@@ -286,7 +299,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         try {
             //Thread.sleep(10);
             //btLeService.writeLatLong("Latitude");
-            Thread.sleep(10);
+            Thread.sleep(100);
             //btLeService.writeLatLong("#"+decimalFormat.format(Destination.latitude));
             sending_string="#"+decimalFormat.format(Destination.latitude).substring(decimalFormat.format(Destination.latitude).indexOf('.')+1);
             sending_string=sending_string+"%"+Double.toString(Math.abs(Destination.longitude)).substring(decimalFormat.format(Math.abs(Destination.longitude)).indexOf('.')+1);
@@ -298,7 +311,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             //Thread.sleep(10);
             //btLeService.writeLatLong("%"+decimalFormat.format(Math.abs(Destination.longitude)));
             //Log.w("Longitude",Double.toString(Math.abs(Destination.longitude)));
-            Thread.sleep(10);
+            Thread.sleep(100);
             btLeService.writeLatLong("Last");
 
             //send_lat_long=false;
@@ -311,7 +324,19 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
-
+    private void UpdateCamLocation(Double LatCo, Double LngCo)
+    {
+        Log.w("Entered","Method");
+        start_marker.remove();
+        SU=new LatLng(LatCo,LngCo);
+        start_marker=Starting_Marker.addMarker((new MarkerOptions().position(SU).title("Current position").icon(BitmapDescriptorFactory.fromResource(R.mipmap.new_titans))));
+        CameraUpdate location = CameraUpdateFactory.newLatLngZoom(SU,17);
+        if(!goingFlag)
+            //Starting_Marker.moveCamera(location);
+            Starting_Marker.animateCamera(location);
+        else
+            Starting_Marker.moveCamera(location);
+    }
 
 
 
@@ -369,27 +394,73 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
 
                 //if(send_lat_long)
-                    //SendData();
+                //SendData();
 
                 receivedData = intent.getStringExtra(BluetoothLeService.EXTRA_DATA);
-                    if (!receivedData.equals("")) {
-                        if (receivedData.contains("L")) {
-                            leftSensorVal = Integer.parseInt(receivedData.substring(receivedData.indexOf('L') + 1,receivedData.indexOf('R')));
-                        }  if (receivedData.contains("C")) {
-                            centerSensorVal = Integer.parseInt(receivedData.substring(receivedData.indexOf('C') + 1,receivedData.indexOf('B')));
-                        }  if (receivedData.contains("R")) {
-                            rightSensorVal = Integer.parseInt(receivedData.substring(receivedData.indexOf('R') + 1,receivedData.indexOf('C')));
-                        }  if (receivedData.contains("B")) {
-                            rearSensorVal = Integer.parseInt(receivedData.substring(receivedData.indexOf('B') + 1,receivedData.indexOf('S')));
-                        }  if (receivedData.contains("SPD")){
-                            speedView.setText(receivedData.substring(receivedData.indexOf('D')+1)+" mph");
+                if (!receivedData.equals("")) {
+                    if (receivedData.contains("L")) {
+                        leftSensorVal = Integer.parseInt(receivedData.substring(receivedData.indexOf('L') + 1,receivedData.indexOf('R')));
+                    }  if (receivedData.contains("C")) {
+                        centerSensorVal = Integer.parseInt(receivedData.substring(receivedData.indexOf('C') + 1,receivedData.indexOf('B')));
+                    }  if (receivedData.contains("R")) {
+                        rightSensorVal = Integer.parseInt(receivedData.substring(receivedData.indexOf('R') + 1,receivedData.indexOf('C')));
+                    }  if (receivedData.contains("B")) {
+                        rearSensorVal = Integer.parseInt(receivedData.substring(receivedData.indexOf('B') + 1,receivedData.indexOf('S')));
+                    }  if (receivedData.contains("SPD")){
+                        speedView.setText(receivedData.substring(receivedData.indexOf('D')+1)+" mph");
+                    }   if(receivedData.contains("@")){
+                        LatCoord=Double.parseDouble(receivedData.substring(receivedData.indexOf('@')+1,receivedData.indexOf('$')));
+                        LatCoord=LatCoord/1000000;
+                        //Log.w("Board Latitude=",LatCoord.toString());
+                        if(LatCoord.toString().compareTo(prev_LatCoord.toString())!=0)
+                        {
+                            UpdateLatCamLocation=true;
                         }
+                        else
+                        {
+                            //Log.w("Lat","False");
+                            UpdateLatCamLocation=false;
+                        }
+                        prev_LatCoord=LatCoord;
+                        Log.w(LatCoord.toString(),prev_LatCoord.toString());
+                            /*if(LatCoord!=0 && Starting_position!=0)
+                                Starting_position++;*/
                     }
-                    leftProgress.setProgress(leftSensorVal);
-                    centerProgress.setProgress(centerSensorVal);
-                    rightProgress.setProgress(rightSensorVal);
-                    rearProgress.setProgress(rearSensorVal);
-                    Log.i("TITANS/Received", receivedData);
+                    if(receivedData.contains("$")){
+                        LonCoord=Double.parseDouble(receivedData.substring(receivedData.indexOf('$')+1));
+                        LonCoord=LonCoord/1000000;
+                        //Log.w("Board Longitude=",LonCoord.toString());
+                        if (LonCoord.toString().compareTo(prev_LngCoord.toString())!=0)
+                        {
+                            UpdateLngCamLocation=true;
+                        }
+                        else
+                        {
+                            //Log.w("Long","False");
+                            UpdateLngCamLocation=false;
+                        }
+                        prev_LngCoord=LonCoord;
+                        Log.w(LonCoord.toString(),prev_LngCoord.toString());
+                    }
+                        /*if(Starting_position==1)
+                        {
+                            start_marker.remove();
+                            SU=new LatLng(LatCoord,LonCoord);
+                            start_marker=Starting_Marker.addMarker((new MarkerOptions().position(SU).title("Starting position").icon(BitmapDescriptorFactory.fromResource(R.mipmap.titans))));
+                            CameraUpdate location = CameraUpdateFactory.newLatLngZoom(SU,17);
+                            Starting_Marker.animateCamera(location);
+                        }*/
+                }
+                leftProgress.setProgress(leftSensorVal);
+                centerProgress.setProgress(centerSensorVal);
+                rightProgress.setProgress(rightSensorVal);
+                rearProgress.setProgress(rearSensorVal);
+                gpsView.setText(LatCoord.toString()+","+LonCoord.toString());
+                if(UpdateLatCamLocation || UpdateLngCamLocation)
+                {
+                    UpdateCamLocation(LatCoord,LonCoord);
+                }
+                Log.i("TITANS/Received", receivedData);
 
 
             }
@@ -467,6 +538,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         onceConnectedFlag=false;
         receivedData="";
@@ -536,7 +608,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                             Log.w("Written total size:",Integer.toString(Lati.size()+1));
                             btLeService.writeStartStop("start");
                             try {
-                                Thread.sleep(10);
+                                Thread.sleep(100);
                             }
                             catch (Exception e)
                             {
@@ -551,6 +623,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                         }
                     } else {
                         if (btLeService != null) {
+                            //Starting_position=0;
                             goingFlag=false;
                             btLeService.writeStartStop("stop");
                             Log.i("TITANS:", "Stop Write done");
