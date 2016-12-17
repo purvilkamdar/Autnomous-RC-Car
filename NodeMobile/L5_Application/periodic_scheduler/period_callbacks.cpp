@@ -86,6 +86,7 @@ extern const GPS_Data_t GPS_Data__MIA_MSG = { 0.000000, 0.000000 };
 extern const uint32_t MOTOR_STATUS__MIA_MS=3000;
 extern const MOTOR_STATUS_t MOTOR_STATUS__MIA_MSG={0};
 int i=0;
+bool destiation_reached=false;
 static SemaphoreHandle_t start_sending=0;
 
 MASTER_HB_t heartbeat = { 0 };
@@ -103,12 +104,8 @@ bool dbc_app_send_can_msg(uint32_t mid, uint8_t dlc, uint8_t bytes[8]) {
 	return CAN_tx(can1, &can_msg, 0);
 }
 void busoff(uint32_t arg) {
-	LE.on(3);
-	if(CAN_is_bus_off(can1))
-	{
-		CAN_reset_bus(can1);
-		LE.off(3);
-	}
+	LE.off(3);
+
 }
 void overrun(uint32_t arg) {
 	LE.on(4);
@@ -143,6 +140,11 @@ bool period_reg_tlm(void) {
  */
 
 void period_1Hz(uint32_t count) {
+	if(CAN_is_bus_off(can1))
+		{
+			CAN_reset_bus(can1);
+			LE.on(3);
+		}
 	if(n==0 && !last_flag){
 		while (CAN_rx(can1, &can_msg, 0)) {
 				dbc_msg_hdr_t can_msg_hdr;
@@ -227,7 +229,10 @@ void period_10Hz(uint32_t count) {
 			}*/
 
 	char* data=new char[20];
-	sprintf(data,"L%02dR%02dC%02dB%02dSPD%0.3f",my_left,my_right,center,rear,speed);
+	if(!destiation_reached)
+		sprintf(data,"L%02dR%02dC%02dB%02dSPD%0.2f0",my_left,my_right,center,rear,speed);
+	else
+		sprintf(data,"L%02dR%02dC%02dB%02dSPD%0.2f1",my_left,my_right,center,rear,speed);
 	u2.put(data, 0);
 	sprintf(data,"@%d$%d",latitude,longitude);
 	u2.put(data,0);
@@ -241,6 +246,8 @@ void period_10Hz(uint32_t count) {
 		start_cmd.APP_COORDINATE_READY=0;
 		counter=0;
 
+	}else if(SW.getSwitch(1)){
+		stop=1;
 	}
 	//printf("The value of counter is %d \n",lat_counter);
 
@@ -276,7 +283,8 @@ void period_10Hz(uint32_t count) {
 					if(counter==(lat_counter-1))
 					{	start_cmd.APP_FINAL_COORDINATE=1;
 						//start_cmd.APP_COORDINATE_READY=0;
-						last_flag=false;
+						//last_flag=false;
+						n=0;
 						//counter=-1;
 					}
 					else
@@ -326,6 +334,22 @@ void period_10Hz(uint32_t count) {
 			longitude1=gpsdata.GPS_READOUT_longitude;
 			longitude=longitude1*1000000;
 		}
+		if(can_msg_hdr.mid==0x21){
+								destiation_reached=true;
+								stop=1;
+								lat_counter=0;
+								counter=0;
+								start=0;
+								size_flag=0;
+								last_flag=0;
+								n=0;
+
+								LE.off(4);
+								LE.off(2);
+								LE.off(3);
+								LE.off(1);
+
+		}
 	}
 	if (dbc_handle_mia_MASTER_HB(&heartbeat, 100)) {
 		LD.clear();
@@ -357,6 +381,7 @@ void period_100Hz(uint32_t count) {
 			u2.gets(stat,14,0);
 
 				if(strcmp(stat,"start")==0) {
+					destiation_reached=false;
 					start=1;
 					lat_counter=0;
 					print_counter=0;
