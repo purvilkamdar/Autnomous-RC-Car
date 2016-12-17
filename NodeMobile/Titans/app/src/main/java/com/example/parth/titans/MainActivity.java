@@ -130,7 +130,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         // Add a marker in Student Union and move the camera
         SU = new LatLng(37.336022, -121.881344);
         //polyline.add(SU);
-        start_marker=mMap.addMarker(new MarkerOptions().position(SU).title("Starting position").icon(BitmapDescriptorFactory.fromResource(R.mipmap.new_titans)));
+        start_marker=mMap.addMarker(new MarkerOptions().position(SU).title("Starting position").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
         CameraUpdate location = CameraUpdateFactory.newLatLngZoom(SU,17);
         //mMap.animateCamera(location);
 
@@ -169,7 +169,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         String origin_long= Double.toString(SU.longitude);
         String dest_lat = Double.toString(Destination.latitude);
         String dest_long=Double.toString(Destination.longitude);
-        String mode = "walking";
+        String mode = "bicycling";
         String alternatives="false";
         String url = "https://maps.googleapis.com/maps/api/directions/json?origin="+origin_lat+","+origin_long+"&destination="+dest_lat+","+dest_long+"&mode="+mode+"&alternatives="+alternatives+"&sensor=false";
         return url;
@@ -239,7 +239,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                     Lati.add(decimalFormat.format(lat).substring(decimalFormat.format(lat).indexOf('.')+1));
                     Longi.add(decimalFormat.format(Math.abs(lng)).substring(decimalFormat.format(Math.abs(lng)).indexOf('.')+1));
                     //Log.w(Double.toString(lat),Double.toString(lng));
-
+                    mMap.addMarker(new MarkerOptions().position(position).title("Starting position").title("37."+Lati.get(+Lati.size()-1)+","+"-121."+Longi.get(Longi.size()-1)));
                     points.add(position);
                 }
                 Log.w("Waypoints="+Lati.toString(),Longi.toString());
@@ -329,13 +329,13 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         Log.w("Entered","Method");
         start_marker.remove();
         SU=new LatLng(LatCo,LngCo);
-        start_marker=Starting_Marker.addMarker((new MarkerOptions().position(SU).title("Current position").icon(BitmapDescriptorFactory.fromResource(R.mipmap.new_titans))));
+        start_marker=Starting_Marker.addMarker((new MarkerOptions().position(SU).title("Current position")).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
         CameraUpdate location = CameraUpdateFactory.newLatLngZoom(SU,17);
         if(!goingFlag)
             //Starting_Marker.moveCamera(location);
             Starting_Marker.animateCamera(location);
-        else
-            Starting_Marker.moveCamera(location);
+        //else
+            //Starting_Marker.moveCamera(location);
     }
 
 
