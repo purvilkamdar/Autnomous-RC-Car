@@ -80,9 +80,9 @@ volatile int lat_counter=0;
 extern const uint32_t MASTER_HB__MIA_MS = 3000;
 extern const MASTER_HB_t MASTER_HB__MIA_MSG = { 0 };
 extern const uint32_t SENSOR_DATA__MIA_MS = 3000;
-extern const SENSOR_DATA_t SENSOR_DATA__MIA_MSG = { 100,100,100 };
+extern const SENSOR_DATA_t SENSOR_DATA__MIA_MSG = { 99,99,99 };
 extern const uint32_t GPS_Data__MIA_MS = 3000;
-extern const GPS_Data_t GPS_Data__MIA_MSG = { 0.000000, 0.000000 };
+extern const GPS_Data_t GPS_Data__MIA_MSG {0};
 extern const uint32_t MOTOR_STATUS__MIA_MS=3000;
 extern const MOTOR_STATUS_t MOTOR_STATUS__MIA_MSG={0};
 int i=0;
@@ -121,7 +121,7 @@ bool period_init(void) {
 	can_void_func_t busOff = busoff;
 	can_void_func_t overr = overrun;
 	u2.init(115200);
-	CAN_init(can1, 100, 10, 10, busOff, overr);
+	CAN_init(can1, 100, 100, 100, busOff, overr);
 	CAN_bypass_filter_accept_all_msgs();
 	CAN_reset_bus(can1);
 	vSemaphoreCreateBinary(start_sending);
@@ -142,8 +142,9 @@ bool period_reg_tlm(void) {
 void period_1Hz(uint32_t count) {
 	if(CAN_is_bus_off(can1))
 		{
-			CAN_reset_bus(can1);
 			LE.on(3);
+			CAN_reset_bus(can1);
+
 		}
 	if(n==0 && !last_flag){
 		while (CAN_rx(can1, &can_msg, 0)) {
@@ -190,7 +191,10 @@ void period_1Hz(uint32_t count) {
 
 				}
 			char* data=new char[20];
-			sprintf(data,"L%02dR%02dC%02dB%02dSPD%0.3f",my_left,my_right,center,rear,speed);
+			if(!destiation_reached)
+				sprintf(data,"L%02dR%02dC%02dB%02dSPD%0.3f",my_left,my_right,center,rear,speed);
+			else
+				sprintf(data,"L%02dR%02dC%02dB%02dSTP%0.3f",my_left,my_right,center,rear,speed);
 			u2.put(data, 0);
 			sprintf(data,"@%d$%d",latitude,longitude);
 			u2.put(data,0);
@@ -230,9 +234,9 @@ void period_10Hz(uint32_t count) {
 
 	char* data=new char[20];
 	if(!destiation_reached)
-		sprintf(data,"L%02dR%02dC%02dB%02dSPD%0.2f0",my_left,my_right,center,rear,speed);
+		sprintf(data,"L%02dR%02dC%02dB%02dSPD%0.3f",my_left,my_right,center,rear,speed);
 	else
-		sprintf(data,"L%02dR%02dC%02dB%02dSPD%0.2f1",my_left,my_right,center,rear,speed);
+		sprintf(data,"L%02dR%02dC%02dB%02dSTP%0.3f",my_left,my_right,center,rear,speed);
 	u2.put(data, 0);
 	sprintf(data,"@%d$%d",latitude,longitude);
 	u2.put(data,0);
@@ -248,6 +252,7 @@ void period_10Hz(uint32_t count) {
 
 	}else if(SW.getSwitch(1)){
 		stop=1;
+		start=0;
 	}
 	//printf("The value of counter is %d \n",lat_counter);
 
@@ -322,7 +327,7 @@ void period_10Hz(uint32_t count) {
 		if(can_msg_hdr.mid==0x30){
 			dbc_decode_MOTOR_STATUS(&motorstatus,can_msg.data.bytes,&can_msg_hdr);
 			printf("\nMotor speed=%lf\n",motorstatus.MOTOR_STATUS_speed_mph);
-			speed=((float)motorstatus.MOTOR_STATUS_speed_mph)/100;
+			speed=((float)motorstatus.MOTOR_STATUS_speed_mph);
 		}
 		if(can_msg_hdr.mid==0x41){
 			if(MIA_Unit==4){
