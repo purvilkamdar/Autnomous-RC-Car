@@ -19,12 +19,14 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.PorterDuff;
 import android.net.Uri;
 import android.os.IBinder;
 import android.os.ParcelUuid;
+import android.speech.tts.TextToSpeech;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AppCompatActivity;
@@ -65,6 +67,7 @@ import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import android.R.color;
 import java.util.List;
+import java.util.Locale;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
@@ -123,7 +126,10 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     private ArrayList<String> Longi;
     DecimalFormat decimalFormat = new DecimalFormat("#.000000");
     String sending_string = new String();
-
+    boolean reachedDialog=false;
+    TextToSpeech ttsobj;
+    boolean spokenflag=false;
+    boolean doneZoom=false;
     private static double deg2rad(double deg) {
         return (deg * Math.PI / 180.0);
     }
@@ -256,14 +262,21 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
                     double lat = Double.parseDouble(point.get("lat"));
                     double lng = Double.parseDouble(point.get("lng"));
+                    if(lat>=37.334610 && lat<37.334620 && lng<=-121.880780 && lng>-121.880790){
+                        lat=37.334618;
+                        lng=-121.880786;
+                    }
+                    if(lat>=37.334580 && lat<37.334590 && lng<=-121.880860 && lng>-121.880870){
+                        lat=37.334576;
+                        lng=-121.880856;
+                    }
                     templat=lat;
                     templong=lng;
                     nextlat=lat;
                     nextlong=lng;
                     if(j>0){
                         while(true) {
-                            while (distance(currentlat, currentlong, templat, templong) >= 15) {
-                                //Log.i("PUPDIST:", "" + distance(currentlat, currentlong, nextlat, nextlong));
+                            while (distance(currentlat, currentlong, templat, templong) >= 10) {
                                 templat = (templat + currentlat) / 2;
                                 templong = (templong + currentlong) / 2;
                             }
@@ -295,7 +308,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                     Lati.add(decimalFormat.format(lat).substring(decimalFormat.format(lat).indexOf('.')+1));
                     Longi.add(decimalFormat.format(Math.abs(lng)).substring(decimalFormat.format(Math.abs(lng)).indexOf('.')+1));
                     //Log.w(Double.toString(lat),Double.toString(lng));
-                    checkpoint_markers=mMap.addMarker(new MarkerOptions().position(position).title("Starting position").title("37."+Lati.get(+Lati.size()-1)+","+"-121."+Longi.get(Longi.size()-1)));
+                    checkpoint_markers=mMap.addMarker(new MarkerOptions().position(position).title("Starting position").title("37."+Lati.get(Lati.size()-1)+","+"-121."+Longi.get(Longi.size()-1)));
                     points.add(position);
                 }
                 Log.w("Waypoints="+Lati.toString(),Longi.toString());
@@ -387,9 +400,11 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         SU=new LatLng(LatCo,LngCo);
         start_marker=Starting_Marker.addMarker((new MarkerOptions().position(SU).title("Current position")).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
         CameraUpdate location = CameraUpdateFactory.newLatLngZoom(SU,17);
-        if(!goingFlag)
+        if(!goingFlag && !doneZoom) {
             //Starting_Marker.moveCamera(location);
             Starting_Marker.animateCamera(location);
+            doneZoom=true;
+        }
         //else
             //Starting_Marker.moveCamera(location);
     }
@@ -416,6 +431,11 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 Log.i("Parth","In thread ...");
                 if(btLeService.getConnectionState()==0) {
                     updateConnectionState("Disconnected");
+                    if(spokenflag) {
+                        //ttsobj.speak("Disconnected from Titans", TextToSpeech.QUEUE_FLUSH, null);
+                        //spokenflag = false;
+                        doneZoom=false;
+                    }
                     connectButton.setText("Search");
                 }
                 if(btLeService.getConnectionState()==1) {
@@ -423,7 +443,11 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 }
                 if(btLeService.getConnectionState()==2) {
                     updateConnectionState("Connected");
+                    if(!spokenflag){
+                        ttsobj.speak("Connected to Titans", TextToSpeech.QUEUE_FLUSH, null);
+                        spokenflag=true;
 
+                    }
                     connectButton.setText("Disconnect");
 
 
@@ -464,7 +488,24 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                         rearSensorVal = Integer.parseInt(receivedData.substring(receivedData.indexOf('B') + 1,receivedData.indexOf('S')));
                     }  if (receivedData.contains("SPD")){
                         speedView.setText(receivedData.substring(receivedData.indexOf('D')+1)+" mph");
-                    }   if(receivedData.contains("@")){
+                    }   if(receivedData.contains("STP")){
+                        ttsobj.speak("Titans Car Has Reached Destination, Have a Good Day.", TextToSpeech.QUEUE_FLUSH, null);
+                        builder.setMessage("Reached Destination").setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+
+                            }
+                        });
+                        dialog=builder.create();
+                        if(!reachedDialog) {
+                            dialog.show();
+                            reachedDialog=true;
+                            startButton.setText("START");
+                            mMap.clear();
+                        }
+
+                    }
+                        if(receivedData.contains("@")){
                         LatCoord=Double.parseDouble(receivedData.substring(receivedData.indexOf('@')+1,receivedData.indexOf('$')));
                         LatCoord=LatCoord/1000000;
                         //Log.w("Board Latitude=",LatCoord.toString());
@@ -507,43 +548,44 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                             Starting_Marker.animateCamera(location);
                         }*/
                 }
+                rearSensorVal=(leftSensorVal+rightSensorVal+centerSensorVal)/3;
                 if(leftSensorVal>50){
-                    leftProgress.getIndeterminateDrawable().setColorFilter(Color.GREEN, PorterDuff.Mode.SRC_IN);
+                    leftProgress.setProgressTintList(ColorStateList.valueOf(Color.GREEN));
                 }else if(leftSensorVal>30 && leftSensorVal<=50){
-                    leftProgress.getIndeterminateDrawable().setColorFilter(Color.YELLOW, android.graphics.PorterDuff.Mode.SRC_IN);
+                    leftProgress.setProgressTintList(ColorStateList.valueOf(Color.YELLOW));
                 }else if(leftSensorVal<30){
-                    leftProgress.getIndeterminateDrawable().setColorFilter(Color.RED, android.graphics.PorterDuff.Mode.SRC_IN);
+                    leftProgress.setProgressTintList(ColorStateList.valueOf(Color.RED));
                 }
                 leftProgress.setProgress(leftSensorVal);
 
                 if(centerSensorVal>50){
-                    centerProgress.getIndeterminateDrawable().setColorFilter(Color.GREEN, android.graphics.PorterDuff.Mode.SRC_IN);
+                    centerProgress.setProgressTintList(ColorStateList.valueOf(Color.GREEN));
                 }else if(centerSensorVal>30 && centerSensorVal<=50){
-                    centerProgress.getIndeterminateDrawable().setColorFilter(Color.YELLOW, android.graphics.PorterDuff.Mode.SRC_IN);
+                    centerProgress.setProgressTintList(ColorStateList.valueOf(Color.YELLOW));
                 }else{
-                    centerProgress.getIndeterminateDrawable().setColorFilter(Color.RED, android.graphics.PorterDuff.Mode.SRC_IN);
+                    centerProgress.setProgressTintList(ColorStateList.valueOf(Color.RED));
                 }
                 centerProgress.setProgress(centerSensorVal);
 
                 if(rightSensorVal>50){
-                    rightProgress.getIndeterminateDrawable().setColorFilter(Color.GREEN, android.graphics.PorterDuff.Mode.SRC_IN);
+                    rightProgress.setProgressTintList(ColorStateList.valueOf(Color.GREEN));
                 }else if(rightSensorVal>30 && rightSensorVal<=50){
-                    rightProgress.getIndeterminateDrawable().setColorFilter(Color.YELLOW, android.graphics.PorterDuff.Mode.SRC_IN);
+                    rightProgress.setProgressTintList(ColorStateList.valueOf(Color.YELLOW));
                 }else{
-                    rightProgress.getIndeterminateDrawable().setColorFilter(Color.RED, android.graphics.PorterDuff.Mode.SRC_IN);
+                    rightProgress.setProgressTintList(ColorStateList.valueOf(Color.RED));
                 }
                 rightProgress.setProgress(rightSensorVal);
 
                 if(rearSensorVal>50){
-                    rearProgress.getIndeterminateDrawable().setColorFilter(Color.GREEN, android.graphics.PorterDuff.Mode.SRC_IN);
+                    rearProgress.setProgressTintList(ColorStateList.valueOf(Color.GREEN));
                 }else if(rearSensorVal>30 && rearSensorVal<=50){
-                    rearProgress.getIndeterminateDrawable().setColorFilter(Color.YELLOW, android.graphics.PorterDuff.Mode.SRC_IN);
+                    rearProgress.setProgressTintList(ColorStateList.valueOf(Color.YELLOW));
                 }else{
-                    rearProgress.getIndeterminateDrawable().setColorFilter(Color.RED, android.graphics.PorterDuff.Mode.SRC_IN);
+                    rearProgress.setProgressTintList(ColorStateList.valueOf(Color.RED));
                 }
                 rearProgress.setProgress(rearSensorVal);
                 gpsView.setText(LatCoord.toString()+","+LonCoord.toString());
-                if(UpdateLatCamLocation || UpdateLngCamLocation)
+                if(UpdateLatCamLocation || UpdateLngCamLocation && LonCoord<-121.87 && LonCoord >-121.88 && LatCoord >=37.33)
                 {
                     UpdateCamLocation(LatCoord,LonCoord);
                 }
@@ -644,12 +686,20 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         rightProgress.setMax(99);
         rearProgress.setMax(99);
         goingFlag=false;
+        spokenflag=false;
         connectionState=(TextView)findViewById(R.id.textView7);
         speedView=(TextView)findViewById(R.id.speedView);
         gpsView=(TextView)findViewById(R.id.gpsView);
         startButton=(Button)findViewById(R.id.button4);
         connectButton=(Button)findViewById(R.id.button2);
 
+        ttsobj=new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                ttsobj.setLanguage(Locale.US);
+                ttsobj.setSpeechRate(1f);
+            }
+        });
 
         // To check whether device supports BLE or not
         if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
@@ -676,6 +726,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     protected void onResume() {
         super.onResume();
+        doneZoom=false;
         registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
         if (!btAdapter.isEnabled()) {
             if (!btAdapter.isEnabled()) {
@@ -706,6 +757,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                             startButton.setText("STOP");
                             goingFlag=true;
                             send_lat_long=true;
+                            reachedDialog=false;
                             //stopRead=false;
                         }
                     } else {
@@ -713,6 +765,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                             //Starting_position=0;
                             goingFlag=false;
                             btLeService.writeStartStop("stop");
+                            mMap.clear();
                             Log.i("TITANS:", "Stop Write done");
                             startButton.setText("START");
 
